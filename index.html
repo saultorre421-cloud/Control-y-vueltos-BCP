@@ -5,45 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>Caja Agente - Local</title>
     <style>
-      body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 10px; padding-bottom: 60px; }
-      
-      /* Botón Limpiar: REDUCIDO, compacto y de color VERDE como el de guardar */
+      body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0 10px 60px 10px; }
+
+      /* AJUSTE: Panel de limpieza más compacto para ganar espacio vertical */
       .btn-limpiar-top { 
-        width: 100%; 
+        width: calc(100% + 20px); 
+        margin: 0 -10px 8px -10px; /* Margen inferior reducido para acercar el contenido */
         background-color: #10b981; 
         color: white; 
-        padding: 8px; 
-        font-size: 16px; 
+        padding: 14px 10px; /* Padding reducido para menor altura */
+        font-size: 17px; 
         font-weight: bold; 
         border: none; 
-        border-radius: 6px; 
-        margin-bottom: 10px; 
+        border-radius: 0 0 8px 8px; 
         cursor: pointer; 
         text-transform: uppercase; 
       }
       .btn-limpiar-top:active { background-color: #059669; }
 
-      /* Paneles de Totales - TAMAÑO ORIGINAL RESTAURADO */
-      .panel-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; font-size: 24px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+      /* Paneles de Totales */
+      .panel-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-radius: 8px; font-size: 22px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
       .total-efectivo { background-color: #2563eb; color: white; } 
       .total-recibo { background-color: #facc15; color: #000; } 
 
-      /* Cajas contenedoras - TAMAÑO ORIGINAL RESTAURADO */
-      .caja { padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #e5e7eb; background: white; }
+      /* Cajas contenedoras */
+      .caja { padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #e5e7eb; background: white; }
 
-      /* Cuadrículas - TAMAÑO ORIGINAL RESTAURADO */
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;}
+      /* Cuadrículas */
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px;}
 
-      /* Inputs Gigantes - TAMAÑO ORIGINAL RESTAURADO */
-      input { width: 100%; height: 50px; font-size: 26px; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; color: #0f172a; }
+      /* Inputs - Tamaño optimizado para visibilidad */
+      input { width: 100%; height: 45px; font-size: 22px; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; color: #0f172a; }
       input:focus { outline: none; border-color: #2563eb; background-color: #f8fafc; }
-      input::placeholder { color: #94a3b8; font-size: 18px; font-weight: normal; }
+      input::placeholder { color: #94a3b8; font-size: 16px; }
 
-      /* Panel de Decisión Inteligente - TAMAÑO ORIGINAL RESTAURADO */
-      .panel-resultado { padding: 18px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 3px solid; transition: all 0.2s; }
-      
-      /* Estados de Colores */
+      /* Panel de Decisión Inteligente */
+      .panel-resultado { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; border: 3px solid; transition: all 0.2s; }
+
       .estado-esperando { background-color: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
       .estado-proceso { background-color: #f3e8ff; border-color: #9333ea; color: #7e22ce; }
       .estado-cobrar { background-color: #ffedd5; border-color: #ea580c; color: #c2410c; }
@@ -51,9 +50,9 @@
       .estado-faltante { background-color: #fee2e2; border-color: #dc2626; color: #b91c1c; }
       .estado-exacto { background-color: #dcfce3; border-color: #16a34a; color: #15803d; }
 
-      .monto-final { display: block; font-size: 42px; margin-top: 5px; }
+      .monto-final { display: block; font-size: 32px; margin-top: 2px; }
 
-      /* PESTAÑAS (TABS) - Navegación Inferior */
+      /* PESTAÑAS (TABS) */
       .tab-content { display: none; }
       .tab-content.active { display: block; }
 
@@ -67,12 +66,11 @@
         border-top: 1px solid #cbd5e1;
         box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         z-index: 1000;
-        transition: transform 0.1s ease-out;
       }
 
       .nav-item {
         flex: 1;
-        padding: 14px 0;
+        padding: 12px 0;
         text-align: center;
         background: none;
         border: none;
@@ -88,14 +86,10 @@
         background-color: #f8fafc;
       }
 
-      /* Sección Retiro */
       .lbl-retiro { font-size: 14px; font-weight: bold; color: #be185d; margin-bottom: 5px; display: block; text-transform: uppercase; }
 
-      /* Botón Guardar */
-      .btn-reg { width: 60%; max-width: 240px; background-color: #10b981; color: white; padding: 8px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; display: block; margin: 0 auto; }
-      .btn-reg:active { background-color: #059669; }
-      
-      #notificacion { text-align: center; color: #10b981; font-weight: bold; margin-top: 10px; display: none; font-size: 14px; }
+      .btn-reg { width: 60%; background-color: #10b981; color: white; padding: 10px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; display: block; margin: 0 auto; }
+      #notificacion { text-align: center; color: #10b981; font-weight: bold; margin-top: 10px; display: none; }
     </style>
   </head>
   <body>
@@ -109,8 +103,8 @@
       </div>
       <div class="caja">
         <div class="grid-2">
-          <input type="number" id="b1" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
-          <input type="number" id="b2" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
+          <input type="text" id="b1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+          <input type="text" id="b2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
         </div>
       </div>
 
@@ -120,18 +114,18 @@
       </div>
       <div class="caja">
         <div class="grid-2">
-          <input type="number" id="p1" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
-          <input type="number" id="p2" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
+          <input type="text" id="p1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+          <input type="text" id="p2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
         </div>
         <div class="grid-3">
-          <input type="number" id="p3" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
-          <input type="number" id="p4" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
-          <input type="number" id="p5" inputmode="decimal" oninput="calcularTodo()" placeholder="0.00">
+          <input type="text" id="p3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+          <input type="text" id="p4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+          <input type="text" id="p5" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
         </div>
       </div>
 
       <div class="panel-resultado estado-esperando" id="panelFinal">
-        <span id="textoFinal" style="font-size: 20px;">ESPERANDO...</span>
+        <span id="textoFinal" style="font-size: 18px;">ESPERANDO...</span>
         <span class="monto-final" id="montoFinal">0.00</span>
       </div>
     </div>
@@ -140,7 +134,7 @@
       <br>
       <div class="caja" style="border-left: 8px solid #ec4899; padding: 8px 10px;">
         <span class="lbl-retiro">Retiro de Efectivo</span>
-        <input type="number" id="retiro" inputmode="decimal" placeholder="0.00" style="height: 40px; font-size: 22px;">
+        <input type="text" id="retiro" inputmode="decimal" oninput="formatInput(this)" placeholder="0.00" style="height: 40px; font-size: 22px;">
       </div>
 
       <button class="btn-reg" id="btnRegistrar" onclick="registrar()">✔ GUARDAR</button>
@@ -154,37 +148,40 @@
 
     <script>
       const formatoSoles = (num) => num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      const getVal = (id) => parseFloat(document.getElementById(id).value.replace(/,/g, '')) || 0;
 
-      // Cambiar entre pestañas
+      function formatInput(input) {
+        let original = input.value;
+        if (original === "") return;
+        let numerico = original.replace(/[^0-9.]/g, '');
+        let partes = numerico.split('.');
+        if (partes.length > 2) { numerico = partes[0] + '.' + partes.slice(1).join(''); partes = numerico.split('.'); }
+        if (partes[0].length > 0) {
+          let entero = parseInt(partes[0], 10);
+          partes[0] = isNaN(entero) ? "" : entero.toLocaleString('en-US');
+        }
+        input.value = partes.join('.');
+      }
+
+      function handleInput(input) { formatInput(input); calcularTodo(); }
+
       function cambiarTab(tabIndex, elemento) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-        
         document.getElementById('tab' + tabIndex).classList.add('active');
         elemento.classList.add('active');
       }
 
-      // CONTROL INTELIGENTE: Ocultar pestañas al abrir el teclado móvil
       const barraNav = document.querySelector('.bottom-nav');
       document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('focus', () => {
-          barraNav.style.display = 'none'; // Desaparece por completo al editar
-        });
-        input.addEventListener('blur', () => {
-          barraNav.style.display = 'flex'; // Reaparece al cerrar el teclado
-        });
+        input.addEventListener('focus', () => { barraNav.style.display = 'none'; });
+        input.addEventListener('blur', () => { barraNav.style.display = 'flex'; });
       });
 
       function calcularTodo() {
-        var b1 = parseFloat(document.getElementById('b1').value) || 0;
-        var b2 = parseFloat(document.getElementById('b2').value) || 0;
+        var b1 = getVal('b1'); var b2 = getVal('b2');
         var totalEfectivo = b1 + b2;
-
-        var p1 = parseFloat(document.getElementById('p1').value) || 0;
-        var p2 = parseFloat(document.getElementById('p2').value) || 0;
-        var p3 = parseFloat(document.getElementById('p3').value) || 0;
-        var p4 = parseFloat(document.getElementById('p4').value) || 0;
-        var p5 = parseFloat(document.getElementById('p5').value) || 0;
+        var p1 = getVal('p1'); var p2 = getVal('p2'); var p3 = getVal('p3'); var p4 = getVal('p4'); var p5 = getVal('p5');
         var totalRecibo = p1 + p2 + p3 + p4 + p5;
 
         document.getElementById('lblEfectivo').innerText = formatoSoles(totalEfectivo);
@@ -197,85 +194,48 @@
 
         if (totalRecibo === 0 && totalEfectivo === 0) {
           panel.className = "panel-resultado estado-esperando";
-          texto.innerText = "ESPERANDO...";
-          monto.innerText = "0.00";
-        } 
-        else if (totalRecibo === 0 && totalEfectivo > 0) {
+          texto.innerText = "ESPERANDO..."; monto.innerText = "0.00";
+        } else if (totalRecibo === 0 && totalEfectivo > 0) {
           panel.className = "panel-resultado estado-proceso";
-          texto.innerText = "DEPÓSITO / EN PROCESO";
-          monto.innerText = formatoSoles(totalEfectivo);
-        } 
-        else if (totalRecibo > 0 && totalEfectivo === 0) {
+          texto.innerText = "DEPÓSITO / EN PROCESO"; monto.innerText = formatoSoles(totalEfectivo);
+        } else if (totalRecibo > 0 && totalEfectivo === 0) {
           panel.className = "panel-resultado estado-cobrar";
-          texto.innerText = "POR COBRAR";
-          monto.innerText = formatoSoles(totalRecibo);
-        } 
-        else {
+          texto.innerText = "POR COBRAR"; monto.innerText = formatoSoles(totalRecibo);
+        } else {
           if (diferencia < 0) {
             panel.className = "panel-resultado estado-faltante";
-            texto.innerText = "FALTANTE";
-            monto.innerText = formatoSoles(Math.abs(diferencia));
+            texto.innerText = "FALTANTE"; monto.innerText = formatoSoles(Math.abs(diferencia));
           } else if (diferencia === 0) {
             panel.className = "panel-resultado estado-exacto";
-            texto.innerText = "PAGO EXACTO";
-            monto.innerText = formatoSoles(0);
+            texto.innerText = "PAGO EXACTO"; monto.innerText = formatoSoles(0);
           } else {
             panel.className = "panel-resultado estado-vuelto";
-            texto.innerText = "VUELTO";
-            monto.innerText = formatoSoles(diferencia);
+            texto.innerText = "VUELTO"; monto.innerText = formatoSoles(diferencia);
           }
         }
       }
 
       function limpiar() {
-        var inputs = document.querySelectorAll('input[type="number"]');
-        inputs.forEach(i => i.value = '');
+        document.querySelectorAll('input').forEach(i => i.value = '');
         calcularTodo();
       }
 
       function registrar() {
-        var efectivo = (parseFloat(document.getElementById('b1').value) || 0) + (parseFloat(document.getElementById('b2').value) || 0);
-        var recibo = (parseFloat(document.getElementById('p1').value) || 0) + (parseFloat(document.getElementById('p2').value) || 0) + (parseFloat(document.getElementById('p3').value) || 0) + (parseFloat(document.getElementById('p4').value) || 0) + (parseFloat(document.getElementById('p5').value) || 0);
-        var retiro = parseFloat(document.getElementById('retiro').value) || 0;
-        
+        var efectivo = getVal('b1') + getVal('b2');
+        var recibo = getVal('p1') + getVal('p2') + getVal('p3') + getVal('p4') + getVal('p5');
+        var retiro = getVal('retiro');
         var esFaltante = document.getElementById('textoFinal').innerText === "FALTANTE";
         var esPorCobrar = document.getElementById('textoFinal').innerText === "POR COBRAR";
 
-        if (esFaltante || esPorCobrar) {
-          alert("No se puede guardar: Operación incompleta o con FALTANTE.");
-          return;
-        }
-
-        var datos = { monto: 0, detalle: "" };
-
-        if (retiro > 0) {
-          datos.monto = -Math.abs(retiro);
-          datos.detalle = "Retiro";
-        } else if (recibo > 0) {
-          datos.monto = recibo; 
-          datos.detalle = "Pago de Servicios";
-        } else if (efectivo > 0) {
-          datos.monto = efectivo; 
-          datos.detalle = "Depósito / Ingreso";
-        } else {
-          return;
-        }
-
+        if (esFaltante || esPorCobrar) { alert("No se puede guardar: Operación incompleta."); return; }
+        
         var btn = document.getElementById('btnRegistrar');
-        btn.innerText = "Guardando...";
-        btn.disabled = true;
+        btn.innerText = "Guardando..."; btn.disabled = true;
 
         setTimeout(function() {
-          console.log("Datos capturados localmente:", datos);
           document.getElementById('notificacion').style.display = 'block';
-          
-          setTimeout(function() { 
-            document.getElementById('notificacion').style.display = 'none'; 
-          }, 2000);
-          
-          limpiar();
-          btn.innerText = "✔ GUARDAR";
-          btn.disabled = false;
+          setTimeout(function() { document.getElementById('notificacion').style.display = 'none'; }, 2000);
+          limpiar(); btn.innerText = "✔ GUARDAR"; btn.disabled = false;
         }, 1000); 
       }
     </script>
