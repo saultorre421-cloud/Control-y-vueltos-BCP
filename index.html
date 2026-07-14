@@ -7,13 +7,12 @@
     <style>
       body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0 10px 60px 10px; }
 
-      /* AJUSTE: Panel de limpieza más compacto para ganar espacio vertical */
       .btn-limpiar-top { 
         width: calc(100% + 20px); 
-        margin: 0 -10px 8px -10px; /* Margen inferior reducido para acercar el contenido */
+        margin: 0 -10px 8px -10px; 
         background-color: #10b981; 
         color: white; 
-        padding: 14px 10px; /* Padding reducido para menor altura */
+        padding: 14px 10px; 
         font-size: 17px; 
         font-weight: bold; 
         border: none; 
@@ -23,36 +22,42 @@
       }
       .btn-limpiar-top:active { background-color: #059669; }
 
-      /* Paneles de Totales */
       .panel-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-radius: 8px; font-size: 22px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
       .total-efectivo { background-color: #2563eb; color: white; } 
       .total-recibo { background-color: #facc15; color: #000; } 
 
-      /* Cajas contenedoras */
       .caja { padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #e5e7eb; background: white; }
 
-      /* Cuadrículas */
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px;}
+      /* Contenedores para el deslizamiento (Swipe nativo) */
+      .contenedor-deslizable {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 12px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .contenedor-deslizable::-webkit-scrollbar { display: none; }
+      .pagina-deslizable {
+        flex: 0 0 100%;
+        scroll-snap-align: start;
+      }
 
-      /* Inputs - Tamaño optimizado para visibilidad */
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
       input { width: 100%; height: 45px; font-size: 22px; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; color: #0f172a; }
       input:focus { outline: none; border-color: #2563eb; background-color: #f8fafc; }
       input::placeholder { color: #94a3b8; font-size: 16px; }
 
-      /* Panel de Decisión Inteligente */
       .panel-resultado { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; border: 3px solid; transition: all 0.2s; }
-
       .estado-esperando { background-color: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
       .estado-proceso { background-color: #f3e8ff; border-color: #9333ea; color: #7e22ce; }
       .estado-cobrar { background-color: #ffedd5; border-color: #ea580c; color: #c2410c; }
       .estado-vuelto { background-color: #e0f2fe; border-color: #0284c7; color: #0369a1; }
       .estado-faltante { background-color: #fee2e2; border-color: #dc2626; color: #b91c1c; }
       .estado-exacto { background-color: #dcfce3; border-color: #16a34a; color: #15803d; }
-
       .monto-final { display: block; font-size: 32px; margin-top: 2px; }
 
-      /* PESTAÑAS (TABS) */
       .tab-content { display: none; }
       .tab-content.active { display: block; }
 
@@ -67,7 +72,6 @@
         box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         z-index: 1000;
       }
-
       .nav-item {
         flex: 1;
         padding: 12px 0;
@@ -79,15 +83,12 @@
         color: #64748b;
         cursor: pointer;
       }
-
       .nav-item.active {
         color: #2563eb;
         border-top: 3px solid #2563eb;
         background-color: #f8fafc;
       }
-
       .lbl-retiro { font-size: 14px; font-weight: bold; color: #be185d; margin-bottom: 5px; display: block; text-transform: uppercase; }
-
       .btn-reg { width: 60%; background-color: #10b981; color: white; padding: 10px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; display: block; margin: 0 auto; }
       #notificacion { text-align: center; color: #10b981; font-weight: bold; margin-top: 10px; display: none; }
     </style>
@@ -102,9 +103,19 @@
         <span id="lblEfectivo">0.00</span>
       </div>
       <div class="caja">
-        <div class="grid-2">
-          <input type="text" id="b1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-          <input type="text" id="b2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+        <div class="contenedor-deslizable">
+          <div class="pagina-deslizable">
+            <div class="grid-2">
+              <input type="text" id="b1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="b2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+            </div>
+          </div>
+          <div class="pagina-deslizable">
+            <div class="grid-2">
+              <input type="text" id="b3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="b4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -113,14 +124,23 @@
         <span id="lblRecibo">0.00</span>
       </div>
       <div class="caja">
-        <div class="grid-2">
-          <input type="text" id="p1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-          <input type="text" id="p2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-        </div>
-        <div class="grid-3">
-          <input type="text" id="p3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-          <input type="text" id="p4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-          <input type="text" id="p5" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+        <div class="contenedor-deslizable">
+          <div class="pagina-deslizable">
+            <div class="grid-2">
+              <input type="text" id="p1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+            </div>
+          </div>
+          <div class="pagina-deslizable">
+            <div class="grid-2">
+              <input type="text" id="p5" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p6" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p7" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+              <input type="text" id="p8" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -136,7 +156,6 @@
         <span class="lbl-retiro">Retiro de Efectivo</span>
         <input type="text" id="retiro" inputmode="decimal" oninput="formatInput(this)" placeholder="0.00" style="height: 40px; font-size: 22px;">
       </div>
-
       <button class="btn-reg" id="btnRegistrar" onclick="registrar()">✔ GUARDAR</button>
       <div id="notificacion">Guardado ✔</div>
     </div>
@@ -179,10 +198,11 @@
       });
 
       function calcularTodo() {
-        var b1 = getVal('b1'); var b2 = getVal('b2');
-        var totalEfectivo = b1 + b2;
-        var p1 = getVal('p1'); var p2 = getVal('p2'); var p3 = getVal('p3'); var p4 = getVal('p4'); var p5 = getVal('p5');
-        var totalRecibo = p1 + p2 + p3 + p4 + p5;
+        var b1 = getVal('b1'); var b2 = getVal('b2'); var b3 = getVal('b3'); var b4 = getVal('b4');
+        var totalEfectivo = b1 + b2 + b3 + b4;
+        var p1 = getVal('p1'); var p2 = getVal('p2'); var p3 = getVal('p3'); var p4 = getVal('p4'); 
+        var p5 = getVal('p5'); var p6 = getVal('p6'); var p7 = getVal('p7'); var p8 = getVal('p8');
+        var totalRecibo = p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8;
 
         document.getElementById('lblEfectivo').innerText = formatoSoles(totalEfectivo);
         document.getElementById('lblRecibo').innerText = formatoSoles(totalRecibo);
@@ -221,14 +241,14 @@
       }
 
       function registrar() {
-        var efectivo = getVal('b1') + getVal('b2');
-        var recibo = getVal('p1') + getVal('p2') + getVal('p3') + getVal('p4') + getVal('p5');
+        var efectivo = getVal('b1') + getVal('b2') + getVal('b3') + getVal('b4');
+        var recibo = getVal('p1') + getVal('p2') + getVal('p3') + getVal('p4') + getVal('p5') + getVal('p6') + getVal('p7') + getVal('p8');
         var retiro = getVal('retiro');
         var esFaltante = document.getElementById('textoFinal').innerText === "FALTANTE";
         var esPorCobrar = document.getElementById('textoFinal').innerText === "POR COBRAR";
 
         if (esFaltante || esPorCobrar) { alert("No se puede guardar: Operación incompleta."); return; }
-        
+
         var btn = document.getElementById('btnRegistrar');
         btn.innerText = "Guardando..."; btn.disabled = true;
 
