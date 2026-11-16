@@ -1,263 +1,3300 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>Caja Agente - Local</title>
-    <style>
-      body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0 10px 60px 10px; }
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORION V8.8 FACTURA ELECTRONICA Empresa:01[free][NOMBRE LOCAL]</title>
+<style>
+  :root {
+    --aqua-bg: #88E4E4;
+    --aqua-sub: #9CE8E8;
+    --win-face: #D4D0C8;
+    --win-light: #FFFFFF;
+    --win-shadow: #808080;
+    --win-dark: #404040;
+    --win-blue: #0A246A;
+    --win-blue-2: #A6CAF0;
+    --header-blue: #3B78C4;
+    --req-yellow: #FFFF99;
+    --grid-sel: #000080;
+  }
 
-      .btn-limpiar-top { 
-        width: calc(100% + 20px); 
-        margin: 0 -10px 8px -10px; 
-        background-color: #10b981; 
-        color: white; 
-        padding: 14px 10px; 
-        font-size: 17px; 
-        font-weight: bold; 
-        border: none; 
-        border-radius: 0 0 8px 8px; 
-        cursor: pointer; 
-        text-transform: uppercase; 
-      }
-      .btn-limpiar-top:active { background-color: #059669; }
+  * {
+    box-sizing: border-box;
+    font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
+    font-size: 11px;
+    user-select: none;
+  }
 
-      .panel-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-radius: 8px; font-size: 22px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
-      .total-efectivo { background-color: #2563eb; color: white; } 
-      .total-recibo { background-color: #facc15; color: #000; } 
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--aqua-bg);
+    color: #000;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-      .caja { padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #e5e7eb; background: white; }
+  /* Classic Windows / Visual FoxPro 3D Borders */
+  .vfp-out {
+    background: var(--win-face);
+    border-top: 2px solid var(--win-light);
+    border-left: 2px solid var(--win-light);
+    border-right: 2px solid var(--win-dark);
+    border-bottom: 2px solid var(--win-dark);
+  }
+  .vfp-in {
+    background: #FFF;
+    border-top: 1px solid var(--win-shadow);
+    border-left: 1px solid var(--win-shadow);
+    border-right: 1px solid var(--win-light);
+    border-bottom: 1px solid var(--win-light);
+  }
+  .vfp-btn {
+    background: var(--win-face);
+    border-top: 2px solid var(--win-light);
+    border-left: 2px solid var(--win-light);
+    border-right: 2px solid var(--win-dark);
+    border-bottom: 2px solid var(--win-dark);
+    padding: 2px 6px;
+    cursor: pointer;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  .vfp-btn:active:not(:disabled) {
+    border-top: 2px solid var(--win-dark);
+    border-left: 2px solid var(--win-dark);
+    border-right: 2px solid var(--win-light);
+    border-bottom: 2px solid var(--win-light);
+    padding: 3px 5px 1px 7px;
+  }
+  .vfp-btn:disabled, .vfp-tbtn:disabled {
+    color: #808080 !important;
+    cursor: default;
+    opacity: 0.65;
+  }
 
-      /* Contenedores para el deslizamiento (Swipe nativo) */
-      .contenedor-deslizable {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        gap: 12px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .contenedor-deslizable::-webkit-scrollbar { display: none; }
-      .pagina-deslizable {
-        flex: 0 0 100%;
-        scroll-snap-align: start;
-      }
+  input, select {
+    border-top: 1px solid var(--win-shadow);
+    border-left: 1px solid var(--win-shadow);
+    border-right: 1px solid var(--win-light);
+    border-bottom: 1px solid var(--win-light);
+    background: #FFF;
+    height: 19px;
+    padding: 1px 3px;
+    font-size: 11px;
+    outline: none;
+    user-select: text;
+    color: #000;
+  }
+  input:focus:not([readonly]), select:focus:not(:disabled) {
+    background-color: #E3F2FD;
+  }
+  .req {
+    background-color: var(--req-yellow) !important;
+  }
+  .ro, input[readonly], select:disabled {
+    background-color: #ECE9D8 !important;
+    color: #333 !important;
+  }
 
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* Main OS-style Title Bar */
+  .sys-titlebar {
+    background: linear-gradient(90deg, var(--win-blue), var(--win-blue-2));
+    color: #FFF;
+    font-weight: bold;
+    padding: 3px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
 
-      input { width: 100%; height: 45px; font-size: 22px; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; color: #0f172a; }
-      input:focus { outline: none; border-color: #2563eb; background-color: #f8fafc; }
-      input::placeholder { color: #94a3b8; font-size: 16px; }
+  /* Classic Top Menu Bar */
+  .sys-menubar {
+    background: var(--win-face);
+    border-bottom: 1px solid var(--win-shadow);
+    display: flex;
+    padding: 1px 4px;
+    gap: 2px;
+    position: relative;
+    z-index: 60;
+    flex-shrink: 0;
+  }
+  .m-item {
+    padding: 2px 7px;
+    cursor: pointer;
+    position: relative;
+  }
+  .m-item:hover {
+    background: var(--win-blue);
+    color: #FFF;
+  }
+  .m-drop {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--win-face);
+    border: 2px outset #FFF;
+    min-width: 230px;
+    z-index: 100;
+    color: #000;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.35);
+  }
+  .m-item:hover .m-drop {
+    display: block;
+  }
+  .m-drop div {
+    padding: 4px 10px;
+    border-bottom: 1px solid #C0C0C0;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .m-drop div:hover {
+    background: var(--win-blue);
+    color: #FFF;
+  }
 
-      .panel-resultado { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; border: 3px solid; transition: all 0.2s; }
-      .estado-esperando { background-color: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
-      .estado-proceso { background-color: #f3e8ff; border-color: #9333ea; color: #7e22ce; }
-      .estado-cobrar { background-color: #ffedd5; border-color: #ea580c; color: #c2410c; }
-      .estado-vuelto { background-color: #e0f2fe; border-color: #0284c7; color: #0369a1; }
-      .estado-faltante { background-color: #fee2e2; border-color: #dc2626; color: #b91c1c; }
-      .estado-exacto { background-color: #dcfce3; border-color: #16a34a; color: #15803d; }
-      .monto-final { display: block; font-size: 32px; margin-top: 2px; }
+  /* Top Brand Ribbon (Login & Main Menu) */
+  .brand-ribbon {
+    background: var(--aqua-bg);
+    padding: 6px 14px 2px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .badges-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .b-halt {
+    background: #FFF;
+    border: 2px solid #003366;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-weight: 900;
+    font-size: 13px;
+    color: #003366;
+    letter-spacing: 0.5px;
+  }
+  .b-ruc {
+    background: #FFF;
+    border: 2px solid #CC0000;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-weight: 900;
+    font-size: 13px;
+    color: #CC0000;
+  }
+  .b-peru {
+    background: linear-gradient(90deg, #D91023 30%, #FFF 30%, #FFF 70%, #D91023 70%);
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-weight: 900;
+    font-size: 12px;
+    color: #000;
+  }
+  .user-banner {
+    font-size: 13px;
+    font-weight: bold;
+    color: #003399;
+    margin-left: 16px;
+  }
+  .switch-user-btn {
+    background: var(--win-face);
+    border: 2px outset #FFF;
+    padding: 3px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    font-size: 10px;
+  }
 
-      .tab-content { display: none; }
-      .tab-content.active { display: block; }
+  /* Main Workspace */
+  #workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
 
-      .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: #ffffff;
-        display: flex;
-        border-top: 1px solid #cbd5e1;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        z-index: 1000;
-      }
-      .nav-item {
-        flex: 1;
-        padding: 12px 0;
-        text-align: center;
-        background: none;
-        border: none;
-        font-size: 15px;
-        font-weight: bold;
-        color: #64748b;
-        cursor: pointer;
-      }
-      .nav-item.active {
-        color: #2563eb;
-        border-top: 3px solid #2563eb;
-        background-color: #f8fafc;
-      }
-      .lbl-retiro { font-size: 14px; font-weight: bold; color: #be185d; margin-bottom: 5px; display: block; text-transform: uppercase; }
-      .btn-reg { width: 60%; background-color: #10b981; color: white; padding: 10px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; display: block; margin: 0 auto; }
-      #notificacion { text-align: center; color: #10b981; font-weight: bold; margin-top: 10px; display: none; }
-    </style>
-  </head>
-  <body>
+  /* Bottom Status Bar */
+  .sys-footer {
+    background: var(--aqua-bg);
+    padding: 3px 10px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
 
-    <div id="tab1" class="tab-content active">
-      <button class="btn-limpiar-top" onclick="limpiar()">🧹 LIMPIAR</button>
+  /* Left POS Hardware Card */
+  .pos-left-card {
+    width: 245px;
+    background: #FFF;
+    border: 1px solid #777;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .pos-hardware-art {
+    width: 100%;
+    height: 235px;
+    background: #FAFAFA;
+    border: 1px solid #DDD;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .red-copyright-box {
+    width: 100%;
+    background: #FF0000;
+    color: #FFF;
+    padding: 8px 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
 
-      <div class="panel-total total-efectivo">
-        <span>EFECTIVO</span>
-        <span id="lblEfectivo">0.00</span>
+  /* LOGIN SCREEN */
+  .login-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 10px;
+  }
+  .access-dialog {
+    width: 315px;
+    padding: 6px;
+  }
+  .access-header {
+    background: var(--header-blue);
+    color: #FFF;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .kp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 8px;
+    background: #B0B0B0;
+    padding: 2px;
+    border: 1px solid #666;
+  }
+  .kp-btn {
+    height: 36px;
+    background: #F4F4F4;
+    border: 1px outset #FFF;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .kp-btn:active { border-style: inset; }
+
+  /* MAIN DASHBOARD GRID */
+  .dash-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 14px;
+    gap: 14px;
+    overflow: auto;
+  }
+  .menu-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 158px);
+    gap: 6px 14px;
+  }
+  .orion-tile {
+    background: #F5F5F5;
+    border: 2px outset #FFF;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 2px 8px;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+  .orion-tile:hover {
+    background: #FFFDE7;
+    border-color: #3B78C4;
+  }
+  .orion-tile:active { border-style: inset; }
+  .orion-tile .t-ico {
+    font-size: 20px;
+    width: 26px;
+    text-align: center;
+  }
+  .orion-tile .t-txt {
+    font-size: 11px;
+    color: #111;
+  }
+  .recuerda-note {
+    width: 175px;
+    background: #FFFF66;
+    border: 1px solid #CCCC00;
+    padding: 10px 8px;
+    align-self: flex-start;
+    margin-top: 12px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* VFP INNER WINDOW FRAME */
+  .vfp-window {
+    flex: 1;
+    margin: 2px 4px;
+    background: var(--win-face);
+    border: 2px outset #FFF;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .vfp-win-title {
+    background: linear-gradient(90deg, #0A246A, #A6CAF0);
+    color: #FFF;
+    font-weight: bold;
+    padding: 2px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+  .vfp-toolbar {
+    background: var(--win-face);
+    border-bottom: 1px solid var(--win-shadow);
+    padding: 2px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    align-items: center;
+  }
+  .vfp-tbtn {
+    min-width: 46px;
+    height: 36px;
+    background: var(--win-face);
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 1px 3px;
+  }
+  .vfp-tbtn:hover:not(:disabled) {
+    border-top: 1px solid #FFF;
+    border-left: 1px solid #FFF;
+    border-right: 1px solid #808080;
+    border-bottom: 1px solid #808080;
+  }
+  .vfp-tbtn .ico { font-size: 13px; line-height: 1.1; }
+
+  .vfp-subbar {
+    background: var(--win-face);
+    border-bottom: 1px solid var(--win-shadow);
+    padding: 2px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    align-items: center;
+  }
+  .vfp-sbtn {
+    height: 28px;
+    min-width: 36px;
+    background: var(--win-face);
+    border: 1px outset #FFF;
+    font-size: 9.5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 1px 3px;
+  }
+
+  /* VFP Data Grid */
+  .vfp-grid-box {
+    background: #FFF;
+    border: 1px inset #808080;
+    overflow: auto;
+  }
+  table.vfp-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  table.vfp-grid th {
+    background: var(--win-face);
+    border: 1px solid #808080;
+    padding: 2px 5px;
+    text-align: left;
+    font-weight: normal;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+  }
+  table.vfp-grid td {
+    border: 1px solid #E0E0E0;
+    padding: 2px 5px;
+    white-space: nowrap;
+  }
+  table.vfp-grid tr.active-row {
+    background: var(--grid-sel);
+    color: #FFF;
+  }
+  table.vfp-grid tr:hover:not(.active-row) {
+    background: #E8F4FF;
+    cursor: pointer;
+  }
+
+  /* Modal Overlay */
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.28);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal-mask.open { display: flex; }
+  .modal-box {
+    background: var(--win-face);
+    border: 2px outset #FFF;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.45);
+    max-width: 98vw;
+    max-height: 97vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-content {
+    background: var(--aqua-bg);
+    padding: 5px;
+    overflow: auto;
+  }
+
+  .tp-sec-box {
+    border: 1px solid #66AAAA;
+    padding: 3px 5px;
+    background: var(--aqua-sub);
+  }
+  .tp-sec-title {
+    font-weight: bold;
+    color: #003366;
+    text-align: center;
+    margin-bottom: 2px;
+    font-size: 10.5px;
+  }
+  .f1-btn {
+    background: var(--win-face);
+    border: 1px outset #FFF;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 0 3px;
+    height: 19px;
+    cursor: pointer;
+  }
+  .stacked-f-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .stacked-f-btns button {
+    background: var(--win-face);
+    border: 1px outset #FFF;
+    font-size: 8px;
+    line-height: 1;
+    padding: 0 3px;
+    cursor: pointer;
+    height: 10px;
+  }
+
+  /* POS Terminal Styles */
+  .lcd-box {
+    background: #000;
+    border: 2px inset #808080;
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lcd-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .lcd-num {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 22px;
+    font-weight: bold;
+    color: #00FF00;
+  }
+  .pos-fam-btn {
+    background: #D9E8F5;
+    border: 2px outset #FFF;
+    height: 32px;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding: 2px;
+  }
+  .pos-fam-btn.active {
+    background: #3B78C4;
+    color: #FFF;
+    border-style: inset;
+  }
+  .pos-prod-btn {
+    background: #FFFF99;
+    border: 2px outset #FFF;
+    height: 44px;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP SYSTEM TITLE BAR -->
+  <div class="sys-titlebar">
+    <div>ORION V8.8 FACTURA ELECTRONICA &nbsp; Empresa:01[free][NOMBRE LOCAL]</div>
+    <div style="display:flex; gap:2px;">
+      <span style="background:var(--win-face); color:#000; padding:0 5px; border:1px outset #FFF; font-size:10px;">_</span>
+      <span style="background:var(--win-face); color:#000; padding:0 5px; border:1px outset #FFF; font-size:10px;">□</span>
+      <span style="background:var(--win-face); color:#000; padding:0 5px; border:1px outset #FFF; font-size:10px; cursor:pointer;" onclick="doLogout()" title="Cerrar sesión">✕</span>
+    </div>
+  </div>
+
+  <!-- CLASSIC TOP MENU BAR -->
+  <div class="sys-menubar" id="top-menubar" style="display:none;">
+    <div class="m-item">Tablas
+      <div class="m-drop">
+        <div onclick="nav('productos')"><span>Productos y Mercaderias</span><span></span></div>
+        <div onclick="openTablaFamiliasModal()"><span>Tabla de familias</span><span></span></div>
+        <div onclick="openTablaClientesSociosModal(false)"><span>Tabla de Clientes Socios</span><span></span></div>
       </div>
-      <div class="caja">
-        <div class="contenedor-deslizable">
-          <div class="pagina-deslizable">
-            <div class="grid-2">
-              <input type="text" id="b1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="b2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-            </div>
+    </div>
+    <div class="m-item">Tienda
+      <div class="m-drop">
+        <div onclick="nav('tienda')"><span>Caja Registradora / Tienda</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Ventas
+      <div class="m-drop">
+        <div onclick="nav('reg_ventas')"><span>Documentos Facturacion Ventas</span><span></span></div>
+        <div onclick="nav('tienda')"><span>Punto de Venta</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Compras
+      <div class="m-drop">
+        <div onclick="nav('compras')"><span>Documentos Facturacion Compras</span><span></span></div>
+        <div onclick="nav('guias_compra')"><span>Documentos Guias Remision Compra</span><span></span></div>
+        <div onclick="openFacturaCompraModal('FC', 'NEW')"><span>Factura de Compra (Nuevo)</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Almacen
+      <div class="m-drop">
+        <div onclick="nav('inventario')"><span>Inventario (Tablas / Reportes / Recalculo)</span><span></span></div>
+        <div onclick="openRecalculosModal()"><span>Recalculo Saldos</span><span></span></div>
+        <div onclick="openKardexSunatModal()"><span>KardexSunat</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Finanzas
+      <div class="m-drop">
+        <div onclick="openCajaMovModal('INGRESO')"><span>Ingresos de Dinero</span><span></span></div>
+        <div onclick="openCajaMovModal('EGRESO')"><span>Egresos de Dinero</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Planillas
+      <div class="m-drop">
+        <div onclick="showVfpNotice('Kardex Personal: Usuario Activo IDE-KRLI RED TECHNOLOGY')"><span>Kardex Personal</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">Gerente
+      <div class="m-drop">
+        <div onclick="nav('inventario')"><span>Reportes Gerenciales</span><span></span></div>
+        <div onclick="resetDemoData()"><span>Restaurar Datos Iniciales Demo</span><span></span></div>
+        <div onclick="exportBackupJSON()"><span>Guardar Respaldo Local (.json)</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item">WM
+      <div class="m-drop">
+        <div onclick="showVfpNotice('Modo Simulador Local Activo')"><span>Web Manager</span><span></span></div>
+      </div>
+    </div>
+    <div class="m-item" onclick="doLogout()">Salir</div>
+  </div>
+
+  <!-- TOP BRAND RIBBON -->
+  <div class="brand-ribbon" id="brand-ribbon">
+    <div class="badges-row">
+      <div class="b-halt">HALT</div>
+      <div class="b-ruc">RUC</div>
+      <div class="b-peru">PERÚ</div>
+      <div class="user-banner" id="user-banner-text" style="display:none;">Usuario Activo: IDE-KRLI RED TECHNOLOGY</div>
+    </div>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <div class="switch-user-btn" id="btn-cambio-usuario" style="display:none;" onclick="doLogout()">
+        <span style="font-size:15px;">👤</span>
+        <span>CambioUsuario</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DYNAMIC WORKSPACE -->
+  <div id="workspace"></div>
+
+  <!-- BOTTOM STATUS BAR -->
+  <div class="sys-footer">
+    <div>ESTA LICENCIA PERTENECE A:NET GROUP POS TI EIRL</div>
+    <div id="sys-clock">--/--/---- --:--:--</div>
+  </div>
+
+  <!-- UNIVERSAL VFP MODAL -->
+  <div class="modal-mask" id="modal-mask">
+    <div class="modal-box" id="modal-box">
+      <div class="vfp-win-title">
+        <span id="modal-title">Ventana</span>
+        <button class="vfp-btn" style="padding:0 5px; font-weight:bold;" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-content" id="modal-content"></div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================================
+   1. BASE DE DATOS LOCAL CON DATOS REALES EXTRAÍDOS DE LAS CAPTURAS Y VIDEOS
+   ============================================================================ */
+const DB_STORAGE_KEY = 'ORION_V88_FULL_REPLICA_V2';
+const CLAVE_6_DIGITOS = '125029';
+
+const DEFAULT_STATE = {
+  familias: [
+    { familia: 'ABARRO', descripcio: 'ABARROTES', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '01', redto: '0' },
+    { familia: 'CERVEZ', descripcio: 'CERVEZAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '02', redto: '0' },
+    { familia: 'CUIDPE', descripcio: 'CUIDADO PERSONAL', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '03', redto: '0' },
+    { familia: 'DESCAR', descripcio: 'DESCARTABLES', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '04', redto: '0' },
+    { familia: 'CONFIT', descripcio: 'CONFITERIA', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '05', redto: '0' },
+    { familia: 'GALLET', descripcio: 'GALLETAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '06', redto: '0' },
+    { familia: 'ARTLIM', descripcio: 'ARTICULOS DE LIMPIEZA', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '07', redto: '0' },
+    { familia: 'MASCOT', descripcio: 'MASCOTA', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '08', redto: '0' },
+    { familia: 'LACTEO', descripcio: 'LACTEOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '09', redto: '0' },
+    { familia: 'CONSER', descripcio: 'CONSERVAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '10', redto: '0' },
+    { familia: 'BEBIDA', descripcio: 'BEBIDAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '11', redto: '0' },
+    { familia: 'PANES',  descripcio: 'PANES Y PAÑALES', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '12', redto: '0' },
+    { familia: 'PLASTI', descripcio: 'PLASTICOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '13', redto: '0' },
+    { familia: 'CONGEL', descripcio: 'CONGELADOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '14', redto: '0' },
+    { familia: 'EMBUTI', descripcio: 'EMBUTIDOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '15', redto: '0' },
+    { familia: 'LICORE', descripcio: 'LICORES Y CIGARROS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '16', redto: '0' },
+    { familia: 'HELADO', descripcio: 'HELADOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '17', redto: '0' },
+    { familia: 'CONDIM', descripcio: 'CONDIMENTOS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '18', redto: '0' },
+    { familia: 'FRUTAS', descripcio: 'FRUTAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '19', redto: '0' },
+    { familia: 'VERDUR', descripcio: 'VERDURAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '20', redto: '0' },
+    { familia: 'CHOCOL', descripcio: 'CHOCOLATE', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '21', redto: '0' },
+    { familia: 'CEREAL', descripcio: 'CEREALES', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '22', redto: '0' },
+    { familia: 'ARROZL', descripcio: 'ARROZ CON LECHE', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '23', redto: '0' },
+    { familia: 'POSTRE', descripcio: 'POSTRES', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '24', redto: '0' }
+  ],
+  productos: [
+    {
+      codigo: '14', barras: '7750243037648', descrip: 'DON VITTORIO FIDEO CORBATA CHICA 235 GR.', desCorta: 'DON VITTORIO FIDEO C',
+      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20448218938 MT DISTRIBUCIONES S.A.',
+      unidad: 'UND', factor: 1, costo: 1.32, costoUlt: 1.32, costoProm: 1.33, costoInicial: 1.38,
+      costoAnt1: 0.00, costoAnt2: 1.34, pvta: 2.00,
+      igv: 18, percep: 0, stock: 25.5, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.001', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '09/08/2026'
+    },
+    {
+      codigo: '1', barras: '7751271001123', descrip: 'LECHE GLORIA AZUL 395 ML', desCorta: 'LECHE GLORIA AZUL 395',
+      presentac: '', familia: 'LACTEO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20604395586 ABARROTES Y PROD.VARIOS AL POR MAYOR',
+      unidad: 'UND', factor: 1, costo: 2.90, costoUlt: 2.90, costoProm: 2.90, costoInicial: 2.90,
+      costoAnt1: 0.00, costoAnt2: 2.85, pvta: 3.50,
+      igv: 18, percep: 0, stock: 8, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.400', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '28/01/2021'
+    },
+    {
+      codigo: '2', barras: '7750106002345', descrip: 'ARROZ COSTEÑO', desCorta: 'ARROZ COSTEÑO',
+      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20604395586 ABARROTES Y PROD.VARIOS AL POR MAYOR',
+      unidad: 'UND', factor: 1, costo: 3.00, costoUlt: 3.00, costoProm: 3.00, costoInicial: 3.00,
+      costoAnt1: 0.00, costoAnt2: 2.95, pvta: 3.50,
+      igv: 18, percep: 0, stock: 12, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.750', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '28/01/2021'
+    },
+    {
+      codigo: '577', barras: '7750182005771', descrip: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', desCorta: 'TRUJILLO CERVEZA 620',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 5.633, costoUlt: 5.633, costoProm: 5.63, costoInicial: 5.63,
+      costoAnt1: 5.63, costoAnt2: 5.50, pvta: 7.00,
+      igv: 18, percep: 2, stock: 240, stkMin: 24, stkMax: 500, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.620', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '581', barras: '7750182005818', descrip: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', desCorta: 'PILSEN CALLAO 620ML',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 6.069, costoUlt: 6.069, costoProm: 6.03, costoInicial: 5.99,
+      costoAnt1: 5.99, costoAnt2: 5.90, pvta: 7.50,
+      igv: 18, percep: 2, stock: 48, stkMin: 12, stkMax: 300, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.620', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '2289', barras: '7750182022891', descrip: 'PILSEN CALLAO CERVEZA 1 LT.', desCorta: 'PILSEN CALLAO 1 LT.',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 7.940, costoUlt: 7.940, costoProm: 7.94, costoInicial: 7.94,
+      costoAnt1: 7.94, costoAnt2: 7.80, pvta: 9.50,
+      igv: 18, percep: 2, stock: 12, stkMin: 6, stkMax: 120, lote: '01', color: 'NEGRO',
+      pesoKgr: '1.000', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '565', barras: '7750182005658', descrip: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', desCorta: 'CUSQUEÑA NEGRA 355ML',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 4.104, costoUlt: 4.104, costoProm: 4.07, costoInicial: 4.04,
+      costoAnt1: 4.04, costoAnt2: 3.95, pvta: 5.50,
+      igv: 18, percep: 2, stock: 12, stkMin: 6, stkMax: 120, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.355', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '5125', barras: '7750182051250', descrip: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', desCorta: 'CUSQUEÑA TRIGO CERO',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 4.248, costoUlt: 4.248, costoProm: 3.85, costoInicial: 3.47,
+      costoAnt1: 3.47, costoAnt2: 3.40, pvta: 5.50,
+      igv: 18, percep: 2, stock: 6, stkMin: 6, stkMax: 100, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.310', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '4764', barras: '7750182047642', descrip: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', desCorta: 'TRUJILLO PILSEN 473ML',
+      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
+      unidad: 'UND', factor: 1, costo: 3.186, costoUlt: 3.186, costoProm: 3.74, costoInicial: 4.30,
+      costoAnt1: 4.30, costoAnt2: 4.20, pvta: 4.50,
+      igv: 18, percep: 2, stock: 60, stkMin: 12, stkMax: 240, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.473', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    }
+  ],
+  socios: [
+    { codigo: '20100113610', tipoDoc: 'J', nombre: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.', dir: 'AV. NICOLAS AYLLON 3986 - ATE', telefono: '', esProv: true, esCli: false },
+    { codigo: '20448218938', tipoDoc: 'J', nombre: 'MT DISTRIBUCIONES S.A.', dir: 'JR. COMERCIO 410', telefono: '', esProv: true, esCli: false },
+    { codigo: '72508222', tipoDoc: 'O', nombre: 'ABASTO NMARKET', dir: 'JR. COMERCIO 120', telefono: '', esProv: true, esCli: true },
+    { codigo: '20604395586', tipoDoc: 'J', nombre: 'ABARROTES Y PROD.VARIOS AL POR MAYOR', dir: 'AV. CENTRAL 450', telefono: '', esProv: true, esCli: false },
+    { codigo: '20614683881', tipoDoc: 'J', nombre: 'S & C SOLUCIONES INTEGRALES S.A.C.', dir: 'AV. FRANCISCO ALAYZA Y PAZ SOLDAN', telefono: '', esProv: true, esCli: false },
+    { codigo: '20498769644', tipoDoc: 'J', nombre: 'GRUPO VEGA DISTRIBUCION S.A.C.', dir: 'AV. NICOLAS AYLLON 1240', telefono: '', esProv: true, esCli: false },
+    { codigo: '20483192313', tipoDoc: 'J', nombre: 'MAKRO SUPERMAYORISTA S.A.', dir: 'AV. JORGE CHAVEZ 1218', telefono: '', esProv: true, esCli: false }
+  ],
+  formasPago: [
+    { pago: '1', descrip: 'EFECTIVO' },
+    { pago: '3', descrip: 'CREDITO' },
+    { pago: '4', descrip: 'VISA' },
+    { pago: '5', descrip: 'MASTERCARD' }
+  ],
+  tiposDocCompra: [
+    { tipo: 'FC', descrip: 'FACTURA DE COMPRA' },
+    { tipo: 'BC', descrip: 'BOLETA DE COMPRA' },
+    { tipo: 'NC', descrip: 'NOTA DE COMPRA' }
+  ],
+  compras: [
+    {
+      tipo: 'FC', serie: 'FD29', numero: '00023188', fecha: '2026-08-07', fechaEntrega: '2026-08-07', hora: '18:35:05',
+      ruc: '20100113610', proveedor: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.',
+      moneda: 'S', formaPago: '1', dias: 1, vendedor: 'ADM',
+      subtotal: 1698.81, neto: 2004.59, igv: 305.79, percepcion: 40.09, flete: 0.00, total: 2044.68, totalUnidades: 378,
+      items: [
+        { codigo: '577', descrip: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', unidad: 'UND', factor: 1, cant: 240, recib: 240, precio: 5.633, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:34:0', costoAnt: 5.63 },
+        { codigo: '581', descrip: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', unidad: 'UND', factor: 1, cant: 48, recib: 48, precio: 6.069, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:34:5', costoAnt: 5.99 },
+        { codigo: '2289', descrip: 'PILSEN CALLAO CERVEZA 1 LT.', unidad: 'UND', factor: 1, cant: 12, recib: 12, precio: 7.940, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:0', costoAnt: 7.94 },
+        { codigo: '565', descrip: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', unidad: 'UND', factor: 1, cant: 12, recib: 12, precio: 4.104, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:2', costoAnt: 4.04 },
+        { codigo: '5125', descrip: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', unidad: 'UND', factor: 1, cant: 6, recib: 6, precio: 4.248, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:4', costoAnt: 3.47 },
+        { codigo: '4764', descrip: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', unidad: 'UND', factor: 1, cant: 60, recib: 60, precio: 3.186, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:5', costoAnt: 4.30 }
+      ]
+    }
+  ],
+  guiasCompra: [],
+  ventas: [],
+  movimientosDinero: [],
+  kardex: [
+    { fecha: '2026-08-07', hora: '18:34:00', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '577', producto: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', entrada: 240, salida: 0, saldo: 240, costo: 5.633 },
+    { fecha: '2026-08-07', hora: '18:34:05', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '581', producto: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', entrada: 48, salida: 0, saldo: 48, costo: 6.069 },
+    { fecha: '2026-08-07', hora: '18:35:00', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '2289', producto: 'PILSEN CALLAO CERVEZA 1 LT.', entrada: 12, salida: 0, saldo: 12, costo: 7.940 },
+    { fecha: '2026-08-07', hora: '18:35:02', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '565', producto: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', entrada: 12, salida: 0, saldo: 12, costo: 4.104 },
+    { fecha: '2026-08-07', hora: '18:35:04', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '5125', producto: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', entrada: 6, salida: 0, saldo: 6, costo: 4.248 },
+    { fecha: '2026-08-07', hora: '18:35:05', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '4764', producto: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', entrada: 60, salida: 0, saldo: 60, costo: 3.186 }
+  ]
+};
+
+let db = loadDB();
+let isLogged = false;
+let currentView = 'login';
+let selectedProdCod = '14';
+let selectedCompraIdx = 0;
+
+function loadDB() {
+  const raw = localStorage.getItem(DB_STORAGE_KEY);
+  if (!raw) {
+    localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(DEFAULT_STATE));
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+  return JSON.parse(raw);
+}
+function saveDB() {
+  localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(db));
+}
+function resetDemoData() {
+  localStorage.removeItem(DB_STORAGE_KEY);
+  db = loadDB();
+  selectedProdCod = '14';
+  selectedCompraIdx = 0;
+  showVfpNotice('Base de datos demo restaurada.');
+  nav(isLogged ? 'dashboard' : 'login');
+}
+function exportBackupJSON() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Orion_V88_Respaldo_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('sys-clock').textContent =
+    `${now.toLocaleDateString('es-PE')} ${now.toLocaleTimeString('es-PE')}`;
+}, 1000);
+
+/* ============================================================================
+   2. INTERCEPTOR GLOBAL DE TECLADO (F1, F7, ENTER, ESCAPE)
+   ============================================================================ */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F1') {
+    e.preventDefault();
+    const active = document.activeElement;
+    if (active && active.dataset && active.dataset.f1 && !active.readOnly) {
+      eval(active.dataset.f1);
+    } else if (currentView === 'productos' && !document.getElementById('modal-mask').classList.contains('open')) {
+      openConsultaModal('FAMILIA', 'flt-fam', null);
+    }
+  } else if (e.key === 'F7') {
+    e.preventDefault();
+    const active = document.activeElement;
+    if (active && active.dataset && active.dataset.f7 && !active.readOnly) {
+      eval(active.dataset.f7);
+    }
+  } else if (e.key === 'Escape') {
+    const subMask = document.getElementById('sub-mask');
+    if (subMask && subMask.classList.contains('open')) {
+      closeSubModal();
+    } else if (document.getElementById('modal-mask').classList.contains('open')) {
+      closeModal();
+    }
+  }
+});
+
+function showVfpNotice(msg, onOk = null) {
+  let noticeMask = document.getElementById('notice-mask');
+  if (!noticeMask) {
+    noticeMask = document.createElement('div');
+    noticeMask.id = 'notice-mask';
+    noticeMask.className = 'modal-mask open';
+    noticeMask.style.zIndex = '500';
+    document.body.appendChild(noticeMask);
+  } else {
+    noticeMask.classList.add('open');
+  }
+  window._noticeOkCb = () => {
+    noticeMask.classList.remove('open');
+    if (onOk) onOk();
+  };
+  noticeMask.innerHTML = `
+    <div class="modal-box" style="width:290px;">
+      <div class="vfp-win-title"><span>Aviso</span></div>
+      <div class="modal-content" style="background:var(--win-face); padding:14px; text-align:center;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px;">
+          <span style="font-size:22px; color:#003399;">ℹ️</span>
+          <span style="font-weight:bold; font-size:12px;">${msg}</span>
+        </div>
+        <button id="vfp-notice-ok-btn" class="vfp-btn" style="width:85px; height:24px;" onclick="window._noticeOkCb()" onkeydown="if(event.key==='Enter') window._noticeOkCb()">Aceptar</button>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('vfp-notice-ok-btn')?.focus(), 30);
+}
+
+function showVfpConfirm(msg, onYes, onNo = null) {
+  let confMask = document.getElementById('confirm-mask');
+  if (!confMask) {
+    confMask = document.createElement('div');
+    confMask.id = 'confirm-mask';
+    confMask.className = 'modal-mask open';
+    confMask.style.zIndex = '500';
+    document.body.appendChild(confMask);
+  } else {
+    confMask.classList.add('open');
+  }
+  window._confYesCb = () => { confMask.classList.remove('open'); if (onYes) onYes(); };
+  window._confNoCb = () => { confMask.classList.remove('open'); if (onNo) onNo(); };
+
+  confMask.innerHTML = `
+    <div class="modal-box" style="width:310px;">
+      <div class="vfp-win-title"><span>Aviso</span></div>
+      <div class="modal-content" style="background:var(--win-face); padding:14px; text-align:center;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px;">
+          <span style="font-size:22px; color:#003399;">❓</span>
+          <span style="font-weight:bold; font-size:12px;">${msg}</span>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px;">
+          <button id="vfp-conf-yes-btn" class="vfp-btn" style="width:80px; height:24px;" onclick="window._confYesCb()">Aceptar</button>
+          <button class="vfp-btn" style="width:80px; height:24px;" onclick="window._confNoCb()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('vfp-conf-yes-btn')?.focus(), 30);
+}
+
+/* ============================================================================
+   3. NAVEGACIÓN ENTRE PANTALLAS
+   ============================================================================ */
+function nav(view) {
+  currentView = view;
+  const ws = document.getElementById('workspace');
+  const menubar = document.getElementById('top-menubar');
+  const ribbon = document.getElementById('brand-ribbon');
+  const userTxt = document.getElementById('user-banner-text');
+  const btnCambio = document.getElementById('btn-cambio-usuario');
+
+  if (view === 'login') {
+    isLogged = false;
+    menubar.style.display = 'none';
+    ribbon.style.display = 'flex';
+    userTxt.style.display = 'none';
+    btnCambio.style.display = 'none';
+    renderLogin(ws);
+    return;
+  }
+
+  menubar.style.display = 'flex';
+  if (view === 'dashboard') {
+    ribbon.style.display = 'flex';
+    userTxt.style.display = 'block';
+    btnCambio.style.display = 'flex';
+    renderDashboard(ws);
+  } else {
+    ribbon.style.display = 'none';
+    if (view === 'productos') renderProductosWindow(ws, false);
+    else if (view === 'compras') renderComprasWindow(ws, false);
+    else if (view === 'guias_compra') renderComprasWindow(ws, true);
+    else if (view === 'inventario') renderInventarioTreeWindow(ws);
+    else if (view === 'reg_ventas') renderVentasWindow(ws);
+    else if (view === 'tienda') renderTiendaWindow(ws);
+  }
+}
+
+function doLogout() {
+  nav('login');
+}
+
+/* ============================================================================
+   4. HARDWARE POS CARD + RECUADRO ROJO
+   ============================================================================ */
+function getPosHardwareCardHTML() {
+  return `
+    <div class="pos-left-card">
+      <div class="pos-hardware-art">
+        <svg width="205" height="215" viewBox="0 0 220 230">
+          <rect x="35" y="8" width="60" height="24" rx="2" fill="#222" stroke="#555" stroke-width="2"/>
+          <rect x="40" y="12" width="50" height="14" fill="#0A3A2A"/>
+          <text x="45" y="22" fill="#00FF66" font-family="monospace" font-size="9">ORION V8.8</text>
+          <rect x="61" y="32" width="8" height="35" fill="#333"/>
+          <rect x="95" y="32" width="110" height="82" rx="4" fill="#2B2B2B" stroke="#111" stroke-width="2"/>
+          <rect x="103" y="40" width="94" height="64" fill="#88E4E4"/>
+          <rect x="107" y="44" width="40" height="28" fill="#FFF"/>
+          <rect x="151" y="44" width="42" height="12" fill="#00B050"/>
+          <rect x="151" y="59" width="20" height="12" fill="#FFFF99"/>
+          <rect x="173" y="59" width="20" height="12" fill="#FFFF99"/>
+          <rect x="151" y="74" width="20" height="12" fill="#FFFF99"/>
+          <rect x="173" y="74" width="20" height="12" fill="#FFFF99"/>
+          <rect x="135" y="114" width="30" height="22" fill="#222"/>
+          <rect x="28" y="68" width="56" height="58" rx="4" fill="#252525" stroke="#111" stroke-width="2"/>
+          <polygon points="38,68 74,68 70,46 42,46" fill="#FFF" stroke="#CCC"/>
+          <line x1="45" y1="53" x2="67" y2="53" stroke="#888" stroke-width="1.5"/>
+          <line x1="45" y1="59" x2="63" y2="59" stroke="#888" stroke-width="1.5"/>
+          <path d="M12 145 Q22 110 38 112 L46 122 Q32 126 24 152 Z" fill="#222"/>
+          <rect x="35" y="108" width="14" height="16" rx="2" fill="#D80000"/>
+          <rect x="30" y="136" width="175" height="24" fill="#222" stroke="#000"/>
+          <polygon points="32,160 203,160 212,216 20,216" fill="#333" stroke="#111" stroke-width="2"/>
+          <rect x="34" y="166" width="34" height="22" fill="#85BB65" stroke="#2E5A1C"/>
+          <rect x="74" y="166" width="34" height="22" fill="#D98880" stroke="#78281F"/>
+          <rect x="114" y="166" width="34" height="22" fill="#7FB3D5" stroke="#1B4F72"/>
+          <rect x="154" y="166" width="38" height="22" fill="#F7DC6F" stroke="#7D6608"/>
+          <circle cx="52" cy="200" r="8" fill="#D4AC0D"/>
+          <circle cx="88" cy="200" r="8" fill="#BDC3C7"/>
+          <circle cx="124" cy="200" r="8" fill="#D4AC0D"/>
+          <circle cx="164" cy="200" r="8" fill="#BDC3C7"/>
+        </svg>
+      </div>
+      <div class="red-copyright-box">
+        SISTEMA ORION V8.8 FACTURA ELECTRONICA<br>
+        Todos los Derechos Reservados (R)<br>
+        Caja registradora Computarizada<br>
+        Sistema Integrado en Red<br>
+        Version SqlServer 2008/2014/2019
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================================
+   5. PANTALLA 1: CONTROL DE ACCESO (CLAVE 6 DÍGITOS: 125029)
+   ============================================================================ */
+function renderLogin(ws) {
+  ws.innerHTML = `
+    <div class="login-stage">
+      ${getPosHardwareCardHTML()}
+
+      <div class="vfp-out access-dialog">
+        <div class="access-header">CONTROL DE ACCESO</div>
+
+        <div style="display:grid; grid-template-columns: 58px 1fr 24px; gap:4px; align-items:center; padding:0 4px;">
+          <label>Pais</label>
+          <select id="login-pais"><option value="PERU" selected>PERU</option></select>
+          <div style="text-align:center; font-size:14px;">🔑</div>
+
+          <label>Empresa</label>
+          <input type="text" class="ro" readonly style="grid-column: span 2;" value="01|[free][NOMBRE LOCAL]">
+
+          <label>Clave</label>
+          <input type="password" id="login-clave" maxlength="6" style="grid-column: span 2; font-size:13px; letter-spacing:2px;" autofocus onkeydown="if(event.key==='Enter') checkLogin()">
+        </div>
+
+        <div class="kp-grid">
+          <button class="kp-btn" onclick="pressLoginKey('0')">0</button>
+          <button class="kp-btn" onclick="pressLoginKey('1')">1</button>
+          <button class="kp-btn" onclick="pressLoginKey('2')">2</button>
+          <button class="kp-btn" onclick="pressLoginKey('3')">3</button>
+
+          <button class="kp-btn" onclick="pressLoginKey('4')">4</button>
+          <button class="kp-btn" onclick="pressLoginKey('5')">5</button>
+          <button class="kp-btn" onclick="pressLoginKey('6')">6</button>
+          <button class="kp-btn" onclick="pressLoginKey('7')">7</button>
+
+          <button class="kp-btn" onclick="pressLoginKey('8')">8</button>
+          <button class="kp-btn" onclick="pressLoginKey('9')">9</button>
+          <button class="kp-btn" onclick="checkLogin()">CR</button>
+          <button class="kp-btn" onclick="backspaceLogin()">⌫</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; padding:10px 28px 6px 28px;">
+          <button class="vfp-btn" style="width:44px; height:36px; font-size:20px; color:#00A000;" onclick="checkLogin()">✔</button>
+          <button class="vfp-btn" style="width:44px; height:36px; font-size:20px; color:#D80000;" onclick="clearLogin()">✖</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 58px 1fr; gap:4px; align-items:center; padding:2px 4px;">
+          <label>Servidor</label>
+          <input type="text" value="LOCALHOST\\SQLEXPRESS" class="ro" readonly>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('login-clave')?.focus(), 50);
+}
+
+function pressLoginKey(digit) {
+  const inp = document.getElementById('login-clave');
+  if (!inp) return;
+  if (inp.value.length < 6) inp.value += digit;
+  inp.focus();
+  if (inp.value.length === 6) checkLogin();
+}
+function backspaceLogin() {
+  const inp = document.getElementById('login-clave');
+  if (inp) { inp.value = inp.value.slice(0, -1); inp.focus(); }
+}
+function clearLogin() {
+  const inp = document.getElementById('login-clave');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+function checkLogin() {
+  const val = document.getElementById('login-clave').value.trim();
+  if (val === CLAVE_6_DIGITOS) {
+    isLogged = true;
+    nav('dashboard');
+  } else {
+    showVfpNotice('Clave Incorrecta', () => clearLogin());
+  }
+}
+
+/* ============================================================================
+   6. PANTALLA 2: MENÚ PRINCIPAL DE 18 ACCESOS + RECUERDA
+   ============================================================================ */
+function renderDashboard(ws) {
+  const ctaCobrar = db.ventas.filter(v => v.formaPago === 'CREDITO').reduce((s,v)=>s+v.total, 0);
+  const ctaPagar = db.compras.filter(c => c.formaPago === '3').reduce((s,c)=>s+c.total, 0);
+
+  const tiles = [
+    { ico: '🛒', txt: 'Tienda',          fn: "nav('tienda')" },
+    { ico: '📦', txt: 'Productos',       fn: "nav('productos')" },
+    { ico: '📋', txt: 'Ord.Compra',      fn: "openFacturaCompraModal('OC', 'NEW')" },
+
+    { ico: '🧾', txt: 'Proforma',        fn: "nav('tienda')" },
+    { ico: '📑', txt: 'Esc.Compras',     fn: "nav('guias_compra')" },
+    { ico: '💰', txt: 'Ingresos Dinero', fn: "openCajaMovModal('INGRESO')" },
+
+    { ico: '🚚', txt: 'Compras',         fn: "nav('compras')" },
+    { ico: '📒', txt: 'Reg.Compras',     fn: "nav('compras')" },
+    { ico: '💸', txt: 'EgresosDinero',   fn: "openCajaMovModal('EGRESO')" },
+
+    { ico: '🔄', txt: 'Traslado',        fn: "nav('inventario')" },
+    { ico: '📊', txt: 'Esc.Ventas',      fn: "nav('reg_ventas')" },
+    { ico: '📈', txt: 'Est.Stock',       fn: "nav('inventario')" },
+
+    { ico: '🪪', txt: 'KardexPersonal',  fn: "showVfpNotice('Kardex Personal: Usuario IDE-KRLI RED TECHNOLOGY')" },
+    { ico: '🖨️', txt: 'Reportes',        fn: "nav('inventario')" },
+    { ico: '📉', txt: 'Estadist.Ventas', fn: "nav('reg_ventas')" },
+
+    { ico: '🗂️', txt: 'RegistroCompras', fn: "nav('compras')" },
+    { ico: '🗃️', txt: 'RegistroVentas',  fn: "nav('reg_ventas')" },
+    { ico: '🚪', txt: 'Salir',           fn: "doLogout()" }
+  ];
+
+  ws.innerHTML = `
+    <div class="dash-stage">
+      ${getPosHardwareCardHTML()}
+
+      <div class="menu-tiles-grid">
+        ${tiles.map(t => `
+          <div class="orion-tile" onclick="${t.fn}">
+            <span class="t-ico">${t.ico}</span>
+            <span class="t-txt">${t.txt}</span>
           </div>
-          <div class="pagina-deslizable">
-            <div class="grid-2">
-              <input type="text" id="b3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="b4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-            </div>
+        `).join('')}
+      </div>
+
+      <div class="recuerda-note">
+        <div style="font-weight:bold; color:#003399; margin-bottom:10px; font-size:12px;">Recuerda:</div>
+        <div style="margin-bottom:8px;">CuentasCobrar:<b>S/${ctaCobrar.toFixed(2)}</b></div>
+        <div style="margin-bottom:14px;">CuentasPagar:<b>S/${ctaPagar.toFixed(2)}</b></div>
+        <div style="text-align:center;">
+          <button class="vfp-btn" style="width:90px;" onclick="nav('dashboard')">Refrescar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================================
+   7. PANTALLA 3: PRODUCTOS Y MERCADERIAS (CON MODO 'VER' EN ZOOM / DOBLE CLIC)
+   ============================================================================ */
+let prodFilters = { familia: '%', producto: '%', barras: '%' };
+
+function renderProductosWindow(ws, showStockPopup = false) {
+  const filtered = db.productos.filter(p => {
+    const fFam = prodFilters.familia === '%' || !prodFilters.familia || p.familia.includes(prodFilters.familia.toUpperCase());
+    const fProd = prodFilters.producto === '%' || !prodFilters.producto || p.descrip.includes(prodFilters.producto.toUpperCase()) || p.codigo.includes(prodFilters.producto.toUpperCase());
+    const fBar = prodFilters.barras === '%' || !prodFilters.barras || (p.barras || '').includes(prodFilters.barras);
+    return fFam && fProd && fBar;
+  });
+
+  if (filtered.length > 0 && !filtered.some(x => x.codigo === selectedProdCod)) {
+    selectedProdCod = filtered[0].codigo;
+  }
+  const activeProd = db.productos.find(p => p.codigo === selectedProdCod) || db.productos[0];
+  const margenAct = activeProd && activeProd.costo > 0
+    ? (((activeProd.pvta - activeProd.costo) / activeProd.costo) * 100).toFixed(2)
+    : '0.00';
+
+  ws.innerHTML = `
+    <div class="vfp-window" style="position:relative;">
+      <div class="vfp-win-title">
+        <span>Productos y Mercaderias</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="nav('dashboard')">✕</button>
+      </div>
+
+      <!-- Toolbar 1: Add (NUEVO), Modifica (MODIFICANDO), Borra, Zoom (VER) -->
+      <div class="vfp-toolbar">
+        <button class="vfp-tbtn" onclick="openTablaProductoModal(null, 'NUEVO', false)"><span class="ico">📄</span>Add</button>
+        <button class="vfp-tbtn" onclick="openTablaProductoModal(selectedProdCod, 'MODIFICANDO', false)"><span class="ico">✏️</span>Modifica</button>
+        <button class="vfp-tbtn" onclick="deleteSelectedProducto()"><span class="ico">🗑️</span>Borra</button>
+        <button class="vfp-tbtn" onclick="openTablaProductoModal(selectedProdCod, 'VER', false)" title="Visualizar ficha completa en modo solo lectura (VER)"><span class="ico">🔍</span>Zoom</button>
+        <button class="vfp-tbtn" onclick="exportProductosCSV()"><span class="ico">📗</span>Excell</button>
+        <button class="vfp-tbtn" onclick="nav('inventario')"><span class="ico">🖨️</span>Reporte</button>
+        <button class="vfp-tbtn" onclick="openTablaFamiliasModal()"><span class="ico">➕</span>Mas</button>
+        <button class="vfp-tbtn" onclick="openKardexSunatModal()"><span class="ico">📊</span>KardexSunat</button>
+        <button class="vfp-tbtn" onclick="showVfpNotice('Catálogo actualizado en modo local.')"><span class="ico">🌐</span>EnviarWeb</button>
+        <button class="vfp-tbtn" onclick="showVfpNotice('Lote activo: 01')"><span class="ico">🏷️</span>Lotes</button>
+        <button class="vfp-tbtn" onclick="nav('dashboard')"><span class="ico">🚪</span>Salir</button>
+      </div>
+
+      <!-- Toolbar 2 -->
+      <div class="vfp-subbar">
+        ${['Stocks','Kardex','Tecla','Receta','Grupo','Genero','Talla','Marca','Oferta','Barras','Combo','SinStock','Grafico','Comis','Flete','Almacen','Capacita','Conces','Cambio','Detalle','Procesar'].map(lbl => `
+          <button class="vfp-sbtn" onclick="handleSubbarClick('${lbl}')">${lbl}</button>
+        `).join('')}
+        <div style="margin-left:auto;">
+          <button class="vfp-btn" onclick="renderProductosWindow(document.getElementById('workspace'), false)">Refresca</button>
+        </div>
+      </div>
+
+      <!-- Cuerpo 3 columnas: Grilla Izquierda + Filtros Centro + STOCK EXISTENCIAS Derecha -->
+      <div style="flex:1; display:grid; grid-template-columns: 1fr 195px 185px; gap:4px; padding:4px; background:var(--aqua-bg); overflow:hidden;">
+
+        <div style="display:flex; flex-direction:column; gap:4px; overflow:hidden;">
+          <div class="vfp-grid-box" style="flex:1;">
+            <table class="vfp-grid">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Descripcio</th>
+                  <th>Marca</th>
+                  <th>Und</th>
+                  <th>Factor</th>
+                  <th>Costo</th>
+                  <th>Pvta</th>
+                  <th>Familia</th>
+                  <th>Subfamilia</th>
+                  <th>Categoria</th>
+                  <th>Seccion</th>
+                  <th>Linea</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.map(p => `
+                  <tr class="${p.codigo === selectedProdCod ? 'active-row' : ''}" onclick="selectProdRow('${p.codigo}')" ondblclick="openTablaProductoModal('${p.codigo}', 'VER', false)" title="Clic para seleccionar, Doble clic o Zoom para abrir en modo VER">
+                    <td>${p.codigo}</td>
+                    <td>${p.descrip}</td>
+                    <td>${p.marca || ''}</td>
+                    <td>${p.unidad}</td>
+                    <td style="text-align:right;">${p.factor}</td>
+                    <td style="text-align:right;">${Number(p.costo).toFixed(2)}</td>
+                    <td style="text-align:right;">${Number(p.pvta).toFixed(2)}</td>
+                    <td>${p.familia}</td>
+                    <td>${p.subfamilia || ''}</td>
+                    <td>${p.categoria || ''}</td>
+                    <td>${p.seccion || ''}</td>
+                    <td>${p.linea || ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="vfp-grid-box" style="height:105px;">
+            <table class="vfp-grid">
+              <thead>
+                <tr>
+                  <th>Lista</th>
+                  <th>FechaAct</th>
+                  <th>Und</th>
+                  <th>Fac</th>
+                  <th>Pventa</th>
+                  <th>Margen%</th>
+                  <th>Uti%</th>
+                  <th>Factor</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${activeProd ? `
+                  <tr class="active-row">
+                    <td>01</td>
+                    <td>${activeProd.fechaAct || '09/08/2026'}</td>
+                    <td>${activeProd.unidad}</td>
+                    <td style="text-align:right;">${activeProd.factor}</td>
+                    <td style="text-align:right;">${Number(activeProd.pvta).toFixed(2)}</td>
+                    <td style="text-align:right;">${margenAct}</td>
+                    <td style="text-align:right;">${margenAct}</td>
+                    <td style="text-align:right;">${activeProd.factor}</td>
+                  </tr>
+                ` : ''}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Panel vertical de filtros con '%' -->
+        <div class="vfp-out" style="padding:4px; overflow-y:auto; font-size:10px;">
+          <div style="display:grid; grid-template-columns: 1fr 48px; gap:2px; align-items:center;">
+            <span>Familia</span><input type="text" id="flt-fam" value="${prodFilters.familia}" data-f1="openConsultaModal('FAMILIA','flt-fam',null)" style="height:17px;">
+            <span>Subfamilia</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Categoria</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Seccion</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Linea</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Genero</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Talla</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Color</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Igv</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Producto</span><input type="text" id="flt-prod" value="${prodFilters.producto}" style="height:17px;">
+            <span>Barras</span><input type="text" id="flt-bar" value="${prodFilters.barras}" style="height:17px;">
+            <span>Marca</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+          </div>
+          <div style="display:flex; gap:4px; margin:6px 0;">
+            <button class="vfp-btn" style="flex:1;" onclick="applyProdFilters()">Filtro</button>
+            <button class="vfp-btn" style="flex:1;" onclick="clearProdFilters()">SinFiltro</button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 48px; gap:2px; align-items:center;">
+            <span>Proveedor</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Porcentaje</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>Activo</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>FactCompra</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>FactVenta</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+            <span>VariaCosto</span><input type="text" value="%" class="ro" readonly style="height:17px;">
+          </div>
+        </div>
+
+        <!-- STOCK EXISTENCIAS -->
+        <div class="vfp-out" style="padding:4px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="font-size:10px; color:#003366;">STOCK EXISTENCIAS</b>
+            <button class="vfp-btn" style="padding:1px 5px; font-size:10px;" onclick="renderProductosWindow(document.getElementById('workspace'), true)">Stock</button>
+          </div>
+          <div class="vfp-grid-box" style="flex:1;">
+            <table class="vfp-grid">
+              <thead>
+                <tr>
+                  <th>Local</th>
+                  <th>Almacen</th>
+                  <th>Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${activeProd ? `
+                  <tr class="active-row">
+                    <td>01</td>
+                    <td>01</td>
+                    <td style="text-align:right; font-weight:bold;">${activeProd.stock}</td>
+                  </tr>
+                ` : ''}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div class="panel-total total-recibo">
-        <span>RECIBO</span>
-        <span id="lblRecibo">0.00</span>
-      </div>
-      <div class="caja">
-        <div class="contenedor-deslizable">
-          <div class="pagina-deslizable">
-            <div class="grid-2">
-              <input type="text" id="p1" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p2" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p3" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p4" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+      <!-- VENTANA EMERGENTE 'Stock Almacenes' -->
+      ${showStockPopup && activeProd ? `
+        <div class="vfp-out" style="position:absolute; top:66px; left:6px; width:450px; height:245px; background:var(--aqua-bg); z-index:40; padding:6px; box-shadow:3px 3px 8px rgba(0,0,0,0.4);">
+          <div style="font-size:10px; margin-bottom:2px;">Stock Almacenes</div>
+          <div style="font-weight:bold; color:#0033CC; font-size:12px; margin-bottom:6px;">${activeProd.descrip}</div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div class="vfp-grid-box" style="width:270px; height:175px;">
+              <table class="vfp-grid">
+                <thead>
+                  <tr>
+                    <th>saldo</th>
+                    <th>nombre</th>
+                    <th>almacen</th>
+                    <th>local</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight:bold;">${activeProd.stock}</td>
+                    <td>PRINCIPAL</td>
+                    <td>01</td>
+                    <td>01</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; padding-top:14px;">
+              <button class="vfp-btn" style="width:110px; height:36px;" onclick="renderProductosWindow(document.getElementById('workspace'), false)">Cerrar Ventana</button>
+              <button class="vfp-btn" style="width:110px; height:36px;" onclick="renderProductosWindow(document.getElementById('workspace'), true)">Refrescar</button>
             </div>
           </div>
-          <div class="pagina-deslizable">
-            <div class="grid-2">
-              <input type="text" id="p5" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p6" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p7" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
-              <input type="text" id="p8" inputmode="decimal" oninput="handleInput(this)" placeholder="0.00">
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function selectProdRow(cod) {
+  selectedProdCod = cod;
+  renderProductosWindow(document.getElementById('workspace'), false);
+}
+function applyProdFilters() {
+  prodFilters.familia = document.getElementById('flt-fam').value.trim() || '%';
+  prodFilters.producto = document.getElementById('flt-prod').value.trim() || '%';
+  prodFilters.barras = document.getElementById('flt-bar').value.trim() || '%';
+  renderProductosWindow(document.getElementById('workspace'), false);
+}
+function clearProdFilters() {
+  prodFilters = { familia: '%', producto: '%', barras: '%' };
+  renderProductosWindow(document.getElementById('workspace'), false);
+}
+function deleteSelectedProducto() {
+  if (!selectedProdCod) return;
+  showVfpConfirm(`¿Desea borrar el producto código ${selectedProdCod}?`, () => {
+    db.productos = db.productos.filter(p => p.codigo !== selectedProdCod);
+    selectedProdCod = db.productos[0]?.codigo || '';
+    saveDB();
+    renderProductosWindow(document.getElementById('workspace'), false);
+  });
+}
+function handleSubbarClick(lbl) {
+  if (lbl === 'Grupo') openTablaFamiliasModal();
+  else if (lbl === 'Stocks') renderProductosWindow(document.getElementById('workspace'), true);
+  else if (lbl === 'Kardex') openKardexSunatModal();
+  else if (lbl === 'SinStock') {
+    const sin = db.productos.filter(p => p.stock <= 0);
+    showVfpNotice(`Productos sin stock: ${sin.length}`);
+  } else {
+    showVfpNotice(`Opción ${lbl}`);
+  }
+}
+function exportProductosCSV() {
+  const rows = [['Producto','Descripcion','Und','Costo','Pvta','Familia','Stock']];
+  db.productos.forEach(p => rows.push([p.codigo, `"${p.descrip}"`, p.unidad, p.costo, p.pvta, p.familia, p.stock]));
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Productos_Orion.csv';
+  a.click();
+}
+
+/* ============================================================================
+   8. 'Tabla de productos' COMPLETA (MODOS: 'NUEVO', 'MODIFICANDO', 'VER')
+   Incluye todos los campos exactos de la captura 1579.png + costos editables
+   ============================================================================ */
+function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = false) {
+  const isNew = (mode === 'NUEVO' || !cod);
+  const isVer = (mode === 'VER');
+  const roAttr = isVer ? 'readonly class="ro"' : '';
+  const disAttr = isVer ? 'disabled' : '';
+
+  const nextAutoCod = String(Math.max(15, db.productos.length + 1));
+  const p = isNew ? {
+    codigo: nextAutoCod, barras: '', descrip: '', desCorta: '', presentac: '',
+    familia: '', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+    proveedor: '', unidad: 'UND', factor: 1,
+    costo: 0, costoUlt: 0, costoProm: 0, costoInicial: 0, costoAnt1: 0, costoAnt2: 0,
+    pvta: 0, igv: 18, percep: 0, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO',
+    pesoKgr: '0.000', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+    activo: 'S', oferta: 'N', remate: 'N', fechaAct: new Date().toLocaleDateString('es-PE')
+  } : db.productos.find(x => x.codigo === cod);
+
+  const famObj = db.familias.find(f => f.familia === p.familia);
+  const margenIni = p.costo > 0 ? (((p.pvta - p.costo) / p.costo) * 100).toFixed(2) : '0.00';
+  const costoEmpIni = (Number(p.costo) * Number(p.factor || 1)).toFixed(2);
+
+  openModal('Tabla de productos', `
+    <div style="width:860px; max-width:96vw;">
+      <!-- Barra superior: Nuevo | Grabar (en gris en modo VER) | Salir -->
+      <div class="vfp-toolbar" style="margin:-5px -5px 5px -5px;">
+        <button class="vfp-btn" style="height:28px; width:34px;" ${isVer ? 'disabled' : ''} onclick="openTablaProductoModal(null, 'NUEVO', ${returnToCompra})" title="Nuevo">📄</button>
+        <button class="vfp-btn" style="height:28px; width:34px;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})" title="Grabar">💾</button>
+        <button class="vfp-btn" style="height:28px; width:34px;" onclick="closeModal()" title="Salir">🚪</button>
+        <span style="margin-left:8px; font-weight:bold; color:${isVer ? '#555' : '#003399'};">[${mode}]</span>
+        <div style="margin-left:auto; display:grid; grid-template-columns: 75px 150px; gap:2px; align-items:center;">
+          <span>CodigoSunat</span><input type="text" ${roAttr} style="height:18px;">
+          <span>Fabricante</span><input type="text" ${roAttr} style="height:18px;">
+        </div>
+      </div>
+
+      <!-- Bloque Superior Exacto (Producto, Familia, Seccion, RecetaPrn, Proveedor, CodBarra, Subfamilia, Marca, Descrip, DescCorto, Presentac) -->
+      <div style="display:grid; grid-template-columns: 62px 135px 78px 68px 20px 62px 80px 20px 58px 1fr; gap:2px 4px; align-items:center; margin-bottom:4px;">
+        <label>Producto</label>
+        <input type="text" id="tp-codigo" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.codigo}">
+
+        <label>Familia</label>
+        <input type="text" id="tp-familia" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} maxlength="6" value="${p.familia}"
+               data-f1="openConsultaModal('FAMILIA', 'tp-familia', 'tp-fam-desc')"
+               data-f7="openTablaFamiliasModal(true)"
+               onchange="syncFamDesc()">
+        <div class="stacked-f-btns">
+          <button ${disAttr} onclick="openConsultaModal('FAMILIA', 'tp-familia', 'tp-fam-desc')" title="F1 Consulta">🔍</button>
+          <button ${disAttr} onclick="openTablaFamiliasModal(true)" title="F7 Crea">+</button>
+        </div>
+
+        <label>Seccion</label>
+        <input type="text" id="tp-sec" ${roAttr} value="${p.seccion || ''}">
+        <button class="f1-btn" ${disAttr}>F1</button>
+
+        <label>Proveedor</label>
+        <select id="tp-proveedor" ${disAttr}>
+          <option value="">-- SELECCIONE PROVEEDOR --</option>
+          ${db.socios.map(s => `<option value="${s.codigo} ${s.nombre}" ${(p.proveedor||'').startsWith(s.codigo)?'selected':''}>${s.codigo} ${s.nombre}</option>`).join('')}
+        </select>
+
+        <label>CodBarra</label>
+        <input type="text" id="tp-barras" ${roAttr} value="${p.barras || ''}">
+
+        <label>Subfamilia</label>
+        <input type="text" id="tp-subfam" ${roAttr} value="${p.subfamilia || ''}">
+        <button class="f1-btn" ${disAttr}>+</button>
+
+        <label>Marca</label>
+        <input type="text" id="tp-marca" ${roAttr} value="${p.marca || ''}">
+        <button class="f1-btn" ${disAttr}>+</button>
+
+        <label>Fam.Desc</label>
+        <input type="text" id="tp-fam-desc" class="ro" readonly value="${famObj ? famObj.descripcio : ''}">
+      </div>
+
+      <!-- Filas Descrip, DescCorto, Presentac y Banderas -->
+      <div style="display:grid; grid-template-columns: 62px 1fr 56px 115px 46px 34px 52px 34px 52px 34px; gap:2px 4px; align-items:center; margin-bottom:4px;">
+        <label>Descrip</label>
+        <input type="text" id="tp-descrip" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.descrip}"
+               onkeydown="if(event.key==='Enter'){event.preventDefault(); copiarDesCorta(); document.getElementById('tp-descorta').focus();}">
+        <label>Categoria</label>
+        <input type="text" id="tp-cat" ${roAttr} value="${p.categoria || ''}">
+        <label>Serie</label><input type="text" ${roAttr} value="${p.serie || 'N'}" style="text-align:center;">
+        <label>Servicio</label><input type="text" ${roAttr} value="${p.servicio || 'N'}" style="text-align:center;">
+        <label>VeCaja</label><input type="text" ${roAttr} value="${p.veCaja || 'S'}" style="text-align:center;">
+
+        <label>DescCorto</label>
+        <input type="text" id="tp-descorta" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.desCorta}"
+               ondblclick="if(!${isVer}) copiarDesCorta()"
+               onkeydown="if(event.key==='Enter'){event.preventDefault(); copiarDesCorta(); document.getElementById('tp-costo').focus(); document.getElementById('tp-costo').select();}">
+        <label>Linea</label>
+        <input type="text" id="tp-linea" ${roAttr} value="${p.linea || ''}">
+        <label>Peso</label><input type="text" id="tp-peso" ${roAttr} value="${p.peso || 'N'}" style="text-align:center;">
+        <label>VtaUnid</label><input type="text" ${roAttr} value="${p.vtaUnid || 'N'}" style="text-align:center;">
+        <label>Remate</label><input type="text" ${roAttr} value="${p.remate || 'N'}" style="text-align:center;">
+
+        <label>Presentac.</label>
+        <input type="text" id="tp-presentac" ${roAttr} value="${p.presentac || ''}">
+        <label>Color</label>
+        <input type="text" ${roAttr} value="${p.color || 'NEGRO'}">
+        <label>Activo</label><input type="text" ${roAttr} value="${p.activo || 'S'}" style="text-align:center;">
+        <label>Oferta</label><input type="text" ${roAttr} value="${p.oferta || 'N'}" style="text-align:center;">
+        <label>Lote</label><input type="text" ${roAttr} value="${p.lote || '01'}" style="text-align:center;">
+      </div>
+
+      <!-- Cuerpo Central 3 Bloques: Izquierda (Pesos/Impuestos) | Centro (Costo Unitario/Empaque/Costo x Empaque) | Derecha (Grilla Pvta/%Margen) -->
+      <div style="display:grid; grid-template-columns: 195px 185px 1fr; gap:5px;">
+        <!-- BLOQUE 1: PesoKgr, IBolsa, IGV, Percep, StkMin, StkMax -->
+        <div class="tp-sec-box" style="display:grid; grid-template-columns: 54px 42px 48px 1fr; gap:2px; align-items:center; font-size:10px;">
+          <span>PesoKgr</span><input type="text" id="tp-pesokgr" ${roAttr} value="${p.pesoKgr || '0.001'}">
+          <span>IBolsa</span><input type="text" ${roAttr} value="0">
+
+          <span>Flete</span><input type="text" ${roAttr} value="0">
+          <span>IGV</span><input type="number" id="tp-igv" ${roAttr} value="${p.igv || 18}">
+
+          <span>%Ivap</span><input type="text" ${roAttr} value="0">
+          <span>Isc</span><input type="text" ${roAttr} value="0">
+
+          <span>Minimo</span><input type="number" id="tp-stkmin" ${roAttr} value="${p.stkMin || 0}">
+          <span>Percep</span><input type="number" id="tp-percep" ${roAttr} value="${p.percep || 0}">
+
+          <span>%DsctRef</span><input type="text" ${roAttr} value="0">
+          <span>Detrac.</span><input type="text" ${roAttr} value="0">
+
+          <span>Rentabili</span><input type="text" ${roAttr} value="0">
+          <span>Maximo</span><input type="number" id="tp-stkmax" ${roAttr} value="${p.stkMax || 0}">
+
+          <span>OrdTouc</span><input type="text" ${roAttr} value="0">
+          <span>Servicio</span><input type="text" ${roAttr} value="0">
+
+          <span style="grid-column:span 2;">DiaUsoPos</span>
+          <input type="text" class="ro" readonly style="grid-column:span 2;" value="${p.fechaAct || ''}">
+
+          <div class="vfp-in" style="grid-column:span 4; height:32px; display:flex; align-items:center; justify-content:center; color:#666;">Foto</div>
+        </div>
+
+        <!-- BLOQUE 2: Costo Unitario + Empaque + Costo x Empaque + CostoAnt -->
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div style="display:flex; align-items:center; gap:6px; padding:0 2px;">
+            <b>Mon.Costo</b>
+            <select ${disAttr} style="width:45px;"><option value="S">S</option><option value="D">D</option></select>
+          </div>
+
+          <div class="tp-sec-box">
+            <div class="tp-sec-title">Costo Unitario</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:2px; align-items:center;">
+              <span>Costo</span>
+              <input type="number" step="0.001" id="tp-costo" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.costo}"
+                     oninput="syncCostoUnitarioToEmpaque()"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault(); document.getElementById('tp-pvta').focus(); document.getElementById('tp-pvta').select();}">
+              <span>CostoUlt.</span><input type="text" class="ro" readonly value="${Number(p.costoUlt || p.costo).toFixed(2)}">
+              <span>CostoProm.</span><input type="text" class="ro" readonly value="${Number(p.costoProm || p.costo).toFixed(2)}">
+              <span>CostoInicial</span><input type="text" class="ro" readonly value="${Number(p.costoInicial || p.costo).toFixed(2)}">
             </div>
+          </div>
+
+          <div class="tp-sec-box">
+            <div class="tp-sec-title">Empaque</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:2px; align-items:center;">
+              <span>Unidad</span>
+              <select id="tp-emp-und" ${disAttr} onchange="document.getElementById('tp-unidad-bot').value=this.value; document.getElementById('tp-grid-und').textContent=this.value;">
+                <option value="UND" ${p.unidad==='UND'?'selected':''}>UND</option>
+                <option value="KG" ${p.unidad==='KG'?'selected':''}>KG</option>
+                <option value="CJ" ${p.unidad==='CJ'?'selected':''}>CJ</option>
+                <option value="PQ" ${p.unidad==='PQ'?'selected':''}>PQ</option>
+              </select>
+              <span>Factor</span>
+              <input type="number" id="tp-factor" ${roAttr} value="${p.factor || 1}" oninput="syncCostoUnitarioToEmpaque()">
+            </div>
+          </div>
+
+          <div class="tp-sec-box">
+            <div class="tp-sec-title">Costo x Empaque</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:2px; align-items:center;">
+              <span>CostoPaq</span>
+              <input type="number" step="0.01" id="tp-costo-paq" ${roAttr} value="${costoEmpIni}" oninput="syncCostoEmpaqueToUnitario()">
+              <span>CostoUlt.</span><input type="text" class="ro" readonly value="${Number(p.costoUlt || p.costo).toFixed(2)}">
+              <span>CostoProm.</span><input type="text" class="ro" readonly value="${Number(p.costoProm || p.costo).toFixed(2)}">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 74px 1fr; gap:2px; align-items:center; padding:0 4px;">
+            <span>CostoAnt-1</span><input type="text" class="ro" readonly value="${Number(p.costoAnt1 || 0).toFixed(2)}">
+            <span>CostoAnt-2</span><input type="text" class="ro" readonly value="${Number(p.costoAnt2 || 0).toFixed(2)}">
+          </div>
+        </div>
+
+        <!-- BLOQUE 3: Grilla de Precios (Unidad | Factor | Pvta | %Margen | %MPrecio | Min | Max | Pvta | %Margen) -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <b>Mon.Pvta</b> <select ${disAttr} style="width:42px;"><option value="S">S</option><option value="D">D</option></select>
+            <b>Lista</b> <select ${disAttr} style="width:48px;"><option value="01">01</option></select>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 125px; gap:4px;">
+            <div class="vfp-grid-box" style="height:175px;">
+              <table class="vfp-grid">
+                <thead>
+                  <tr>
+                    <th>Unidad</th>
+                    <th>Factor</th>
+                    <th>Pvta</th>
+                    <th>%Margen</th>
+                    <th>%MPrecio</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Pvta</th>
+                    <th>%Margen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td id="tp-grid-und" style="font-weight:bold;">${p.unidad}</td>
+                    <td style="font-weight:bold;">1</td>
+                    <td style="padding:0;">
+                      <input type="number" step="0.01" id="tp-pvta" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.pvta}"
+                             style="width:55px; height:18px; border:none; font-weight:bold;" oninput="recalcTablaProdMargen()">
+                    </td>
+                    <td id="tp-margen-cell" style="text-align:right; font-weight:bold;">${margenIni}</td>
+                    <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+                  </tr>
+                  ${[2,3,4,5,6,7].map(()=>`<tr><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="tp-sec-box" style="display:flex; flex-direction:column; gap:2px; font-size:10px;">
+              <span>FechaInicio</span><input type="text" ${roAttr} style="height:17px;">
+              <span>FechaFinal</span><input type="text" ${roAttr} style="height:17px;">
+              <span>FechaInicio</span><input type="text" ${roAttr} style="height:17px;">
+              <span>FechaFinal</span><input type="text" ${roAttr} style="height:17px;">
+              <span>Descuento Fijo</span><input type="text" ${roAttr} value="0" style="height:17px;">
+            </div>
+          </div>
+
+          <!-- Fila de Estado Exacta: VER / NUEVO / MODIFICANDO | T/C:1 | Oferta,precio=0 acepta -->
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:2px 4px; font-weight:bold;">
+            <span style="font-size:12px; color:#000;">${mode}</span>
+            <span>T/C:1</span>
+            <span style="font-weight:normal;">Oferta,precio=0 acepta</span>
+          </div>
+
+          <!-- Bloque inferior de Impresoras y Comision -->
+          <div class="tp-sec-box" style="display:grid; grid-template-columns: 115px 1fr 90px 45px; gap:2px 4px; align-items:center; font-size:10px;">
+            <span>Impresoras</span><input type="text" ${roAttr} value="%" style="height:17px;">
+            <span>Cola Impresion</span><input type="text" ${roAttr} value="5" style="height:17px;">
+
+            <span>Puerto orden Despacho1</span><input type="text" ${roAttr} style="height:17px;">
+            <span>FacReporte</span><input type="text" ${roAttr} value="0" style="height:17px;">
+
+            <span>Grupo orden Despacho</span><input type="text" ${roAttr} style="height:17px;">
+            <span>Comision</span><input type="text" ${roAttr} value="0" style="height:17px;">
           </div>
         </div>
       </div>
 
-      <div class="panel-resultado estado-esperando" id="panelFinal">
-        <span id="textoFinal" style="font-size: 18px;">ESPERANDO...</span>
-        <span class="monto-final" id="montoFinal">0.00</span>
+      <!-- Pie final exacto -->
+      <div style="margin-top:4px; padding-top:4px; border-top:1px solid #66AAAA; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span>Produce ?</span>
+          <span>UnidadP</span><input type="text" id="tp-unidad-bot" class="ro" readonly value="${p.unidad}" style="width:42px;">
+          <span>FactorP</span><input type="text" class="ro" readonly value="${p.factor || 1}" style="width:30px;">
+          <span>TipoProd</span><input type="text" class="ro" readonly value="STD" style="width:38px;">
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="vfp-btn" style="width:85px; font-weight:bold;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})">💾 Grabar</button>
+          <button class="vfp-btn" style="width:85px;" onclick="closeModal()">🚪 Salir</button>
+        </div>
       </div>
     </div>
+  `);
+}
 
-    <div id="tab2" class="tab-content">
-      <br>
-      <div class="caja" style="border-left: 8px solid #ec4899; padding: 8px 10px;">
-        <span class="lbl-retiro">Retiro de Efectivo</span>
-        <input type="text" id="retiro" inputmode="decimal" oninput="formatInput(this)" placeholder="0.00" style="height: 40px; font-size: 22px;">
+function copiarDesCorta() {
+  const full = document.getElementById('tp-descrip').value.trim().toUpperCase();
+  if (full) document.getElementById('tp-descorta').value = full.slice(0, 22);
+}
+function syncFamDesc() {
+  const fCod = document.getElementById('tp-familia').value.trim().toUpperCase();
+  const found = db.familias.find(f => f.familia === fCod);
+  document.getElementById('tp-fam-desc').value = found ? found.descripcio : '';
+}
+function syncCostoUnitarioToEmpaque() {
+  const c = parseFloat(document.getElementById('tp-costo').value) || 0;
+  const f = parseFloat(document.getElementById('tp-factor').value) || 1;
+  const paq = document.getElementById('tp-costo-paq');
+  if (paq) paq.value = (c * f).toFixed(2);
+  recalcTablaProdMargen();
+}
+function syncCostoEmpaqueToUnitario() {
+  const paq = parseFloat(document.getElementById('tp-costo-paq').value) || 0;
+  const f = parseFloat(document.getElementById('tp-factor').value) || 1;
+  const unit = document.getElementById('tp-costo');
+  if (unit && f > 0) unit.value = (paq / f).toFixed(3);
+  recalcTablaProdMargen();
+}
+function recalcTablaProdMargen() {
+  const c = parseFloat(document.getElementById('tp-costo').value) || 0;
+  const v = parseFloat(document.getElementById('tp-pvta').value) || 0;
+  const cell = document.getElementById('tp-margen-cell');
+  if (cell) cell.textContent = c > 0 ? (((v - c) / c) * 100).toFixed(2) : '0.00';
+}
+
+function saveTablaProducto(isNew, returnToCompra = false) {
+  const codigo = document.getElementById('tp-codigo').value.trim().toUpperCase();
+  const barras = document.getElementById('tp-barras').value.trim();
+  const descrip = document.getElementById('tp-descrip').value.trim().toUpperCase();
+  const desCorta = (document.getElementById('tp-descorta').value.trim() || descrip.slice(0,22)).toUpperCase();
+  const presentac = document.getElementById('tp-presentac').value.trim().toUpperCase();
+  const familia = document.getElementById('tp-familia').value.trim().toUpperCase();
+  const unidad = document.getElementById('tp-emp-und').value;
+  const factor = parseFloat(document.getElementById('tp-factor').value) || 1;
+  const costo = parseFloat(document.getElementById('tp-costo').value) || 0;
+  const pvta = parseFloat(document.getElementById('tp-pvta').value) || 0;
+  const igv = parseFloat(document.getElementById('tp-igv').value) || 18;
+  const percep = parseFloat(document.getElementById('tp-percep').value) || 0;
+  const stkMin = parseFloat(document.getElementById('tp-stkmin').value) || 0;
+  const stkMax = parseFloat(document.getElementById('tp-stkmax').value) || 0;
+  const marca = document.getElementById('tp-marca').value.trim().toUpperCase();
+  const categoria = document.getElementById('tp-cat').value.trim().toUpperCase();
+  const linea = document.getElementById('tp-linea').value.trim().toUpperCase();
+  const subfamilia = document.getElementById('tp-subfam').value.trim().toUpperCase();
+  const seccion = document.getElementById('tp-sec').value.trim().toUpperCase();
+  const proveedor = document.getElementById('tp-proveedor').value;
+  const pesoKgr = document.getElementById('tp-pesokgr').value.trim();
+
+  if (!codigo || !descrip || !familia || pvta <= 0) {
+    showVfpNotice('Faltan datos obligatorios en amarillo (Producto, Familia, Descrip o Pvta).');
+    return;
+  }
+
+  const hoy = new Date().toLocaleDateString('es-PE');
+  const idx = db.productos.findIndex(x => x.codigo === codigo);
+  if (idx >= 0) {
+    db.productos[idx] = {
+      ...db.productos[idx],
+      barras, descrip, desCorta, presentac, familia, subfamilia, categoria, seccion, linea, marca, proveedor,
+      unidad, factor, costo, costoUlt: costo || db.productos[idx].costoUlt, costoProm: costo || db.productos[idx].costoProm,
+      pvta, igv, percep, stkMin, stkMax, pesoKgr, fechaAct: hoy
+    };
+  } else {
+    db.productos.push({
+      codigo, barras, descrip, desCorta, presentac, familia, subfamilia, categoria, seccion, linea, marca, proveedor,
+      unidad, factor, costo, costoUlt: costo, costoProm: costo, costoInicial: costo, costoAnt1: 0, costoAnt2: 0,
+      pvta, igv, percep, stock: 0, stkMin, stkMax, lote: '01', color: 'NEGRO', pesoKgr, peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N', activo: 'S', oferta: 'N', remate: 'N', fechaAct: hoy
+    });
+  }
+
+  saveDB();
+  selectedProdCod = codigo;
+  showVfpNotice('Proceso Grabado', () => {
+    closeModal();
+    if (returnToCompra) {
+      openFacturaCompraModal('FC', 'NEW', codigo);
+    } else if (currentView === 'productos') {
+      renderProductosWindow(document.getElementById('workspace'), false);
+    }
+  });
+}
+
+/* ============================================================================
+   9. TABLA DE FAMILIAS Y TABLA DE CLIENTES SOCIOS
+   ============================================================================ */
+let selectedFamCode = 'ABARRO';
+
+function openTablaFamiliasModal(fromProductForm = false) {
+  let sub = document.getElementById('sub-mask');
+  if (!sub) {
+    sub = document.createElement('div');
+    sub.id = 'sub-mask';
+    sub.className = 'modal-mask open';
+    sub.style.zIndex = '320';
+    document.body.appendChild(sub);
+  } else {
+    sub.classList.add('open');
+  }
+
+  sub.innerHTML = `
+    <div class="modal-box" style="width:740px; max-width:96vw;">
+      <div class="vfp-win-title">
+        <span>Tabla de familias</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="closeSubModal()">✕</button>
       </div>
-      <button class="btn-reg" id="btnRegistrar" onclick="registrar()">✔ GUARDAR</button>
-      <div id="notificacion">Guardado ✔</div>
+      <div class="modal-content">
+        <div class="vfp-toolbar" style="margin:-5px -5px 6px -5px;">
+          <button class="vfp-tbtn" onclick="openFamiliaAddSubModal(${fromProductForm})"><span class="ico">📄</span>Add</button>
+          <button class="vfp-tbtn" onclick="openFamiliaAddSubModal(${fromProductForm}, true)"><span class="ico">✏️</span>Modifica</button>
+          <button class="vfp-tbtn" onclick="deleteSelectedFamilia(${fromProductForm})"><span class="ico">🗑️</span>Borra</button>
+          <button class="vfp-tbtn" onclick="openFamiliaAddSubModal(${fromProductForm}, true)"><span class="ico">🔍</span>Zoom</button>
+          <button class="vfp-tbtn" onclick="window.print()"><span class="ico">🖨️</span>Reporte</button>
+          <button class="vfp-tbtn" onclick="showVfpNotice('SubFamilias')"><span class="ico">📂</span>SubFamilia</button>
+          <button class="vfp-tbtn" onclick="closeSubModal()"><span class="ico">🚪</span>Salir</button>
+        </div>
+
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+          <select style="width:120px;"><option>descripcio</option></select>
+          <select style="width:45px;"><option>%</option></select>
+          <input type="text" id="fam-list-flt" style="flex:1;" onkeyup="filterFamListGrid(this.value)">
+          <button class="vfp-btn" style="width:75px;" onclick="filterFamListGrid(document.getElementById('fam-list-flt').value)">Buscar</button>
+          ${fromProductForm ? `<button class="vfp-btn" style="background:#FFFF99; font-weight:bold;" onclick="pickFamiliaForProd()">Seleccionar</button>` : ''}
+        </div>
+
+        <div class="vfp-grid-box" style="height:260px;">
+          <table class="vfp-grid" id="fam-list-grid">
+            <thead>
+              <tr>
+                <th>Descripcio</th><th>Familia</th><th>Ccta</th><th>Obliga</th><th>Vefactu</th><th>Fact</th><th>Grupo</th><th>Orden</th><th>Redto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${db.familias.map(f => `
+                <tr class="${f.familia === selectedFamCode ? 'active-row' : ''}" onclick="selectedFamCode='${f.familia}'; openTablaFamiliasModal(${fromProductForm});" ondblclick="${fromProductForm ? 'pickFamiliaForProd()' : ''}">
+                  <td>${f.descripcio}</td><td>${f.familia}</td><td>${f.ccta || 'S'}</td><td>${f.obliga || 'N'}</td><td>${f.vefactu || 'S'}</td><td>${f.fact || '1'}</td><td>${f.grupo || 'A'}</td><td>${f.orden || ''}</td><td>${f.redto || '0'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+  `;
+}
 
-    <nav class="bottom-nav">
-      <button class="nav-item active" onclick="cambiarTab(1, this)">📝 Operación</button>
-      <button class="nav-item" onclick="cambiarTab(2, this)">⚙️ Extras / Guardar</button>
-    </nav>
+function filterFamListGrid(q) {
+  q = q.toUpperCase();
+  document.querySelectorAll('#fam-list-grid tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toUpperCase().includes(q) ? '' : 'none';
+  });
+}
+function pickFamiliaForProd() {
+  const f = db.familias.find(x => x.familia === selectedFamCode);
+  if (f) {
+    const inp = document.getElementById('tp-familia');
+    const desc = document.getElementById('tp-fam-desc');
+    if (inp) inp.value = f.familia;
+    if (desc) desc.value = f.descripcio;
+  }
+  closeSubModal();
+}
+function deleteSelectedFamilia(fromProductForm) {
+  showVfpConfirm(`¿Borrar familia ${selectedFamCode}?`, () => {
+    db.familias = db.familias.filter(f => f.familia !== selectedFamCode);
+    selectedFamCode = db.familias[0]?.familia || '';
+    saveDB();
+    openTablaFamiliasModal(fromProductForm);
+  });
+}
 
-    <script>
-      const formatoSoles = (num) => num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      const getVal = (id) => parseFloat(document.getElementById(id).value.replace(/,/g, '')) || 0;
+function openFamiliaAddSubModal(fromProductForm, isEdit = false) {
+  const famObj = isEdit ? db.familias.find(f => f.familia === selectedFamCode) : null;
+  let sub2 = document.getElementById('sub2-mask');
+  if (!sub2) {
+    sub2 = document.createElement('div');
+    sub2.id = 'sub2-mask';
+    sub2.className = 'modal-mask open';
+    sub2.style.zIndex = '360';
+    document.body.appendChild(sub2);
+  } else {
+    sub2.classList.add('open');
+  }
 
-      function formatInput(input) {
-        let original = input.value;
-        if (original === "") return;
-        let numerico = original.replace(/[^0-9.]/g, '');
-        let partes = numerico.split('.');
-        if (partes.length > 2) { numerico = partes[0] + '.' + partes.slice(1).join(''); partes = numerico.split('.'); }
-        if (partes[0].length > 0) {
-          let entero = parseInt(partes[0], 10);
-          partes[0] = isNaN(entero) ? "" : entero.toLocaleString('en-US');
-        }
-        input.value = partes.join('.');
-      }
+  sub2.innerHTML = `
+    <div class="modal-box" style="width:650px; max-width:96vw;">
+      <div class="vfp-win-title">
+        <span>Tabla de familias</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="sub2.classList.remove('open'); openTablaFamiliasModal(${fromProductForm});">✕</button>
+      </div>
+      <div class="modal-content">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 95px; gap:8px;">
+          <div style="display:grid; grid-template-columns: 115px 1fr; gap:3px; align-items:center;">
+            <label>Familia</label>
+            <input type="text" id="nf-codigo" class="req" maxlength="6" value="${famObj ? famObj.familia : ''}" ${isEdit ? 'readonly class="ro"' : ''} autofocus>
+            <label>Descripcio</label>
+            <input type="text" id="nf-desc" class="req" value="${famObj ? famObj.descripcio : ''}">
+            <label></label><label><input type="checkbox"> 1.Sin Inventario</label>
+            <label>Grupo Impresion</label><input type="text" value="A" style="width:35px;">
+            <label>Ccta</label><input type="text" value="S" style="width:35px;">
+            <label>Maxdscto</label><input type="text" value="0.00">
+            <label>Delivery sumar =</label><input type="text" value="0">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="display:grid; grid-template-columns: 115px 1fr; gap:3px; align-items:center;">
+              <label></label><label><input type="checkbox"> Habilita Subfam.Caja</label>
+              <label>Visualiza Touch</label><input type="text" value="0" style="width:45px;">
+              <label>Orden Touch</label><input type="text" value="0" style="width:45px;">
+              <label>Impresoras</label><input type="text" value="POS-80">
+            </div>
+            <div class="tp-sec-box">
+              <div style="display:grid; grid-template-columns: 75px 1fr; gap:3px; align-items:center;">
+                <span>Color Boton</span><input type="text" value="NEGRO">
+                <span>Color Letra</span><input type="text" value="NEGRO">
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; padding-top:4px;">
+            <button class="vfp-btn" style="height:44px; flex-direction:column;" onclick="saveNuevaFamilia(${fromProductForm}, ${isEdit})">
+              <span style="font-size:16px;">💾</span><span>Guarda</span>
+            </button>
+            <button class="vfp-btn" style="height:44px; flex-direction:column;" onclick="document.getElementById('sub2-mask').classList.remove('open'); openTablaFamiliasModal(${fromProductForm});">
+              <span style="font-size:16px;">🚪</span><span>Cerrar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('nf-codigo')?.focus(), 30);
+}
 
-      function handleInput(input) { formatInput(input); calcularTodo(); }
+function saveNuevaFamilia(fromProductForm, isEdit) {
+  const cod = document.getElementById('nf-codigo').value.trim().toUpperCase().slice(0,6);
+  const desc = document.getElementById('nf-desc').value.trim().toUpperCase();
+  if (!cod || !desc) return showVfpNotice('Debe ingresar Familia y Descripcio.');
+  if (isEdit) {
+    const f = db.familias.find(x => x.familia === cod);
+    if (f) f.descripcio = desc;
+  } else {
+    if (db.familias.some(x => x.familia === cod)) return showVfpNotice('El código de familia ya existe.');
+    db.familias.push({ familia: cod, descripcio: desc, ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: String(db.familias.length+1), redto: '0' });
+  }
+  selectedFamCode = cod;
+  saveDB();
+  showVfpNotice('Proceso Grabado', () => {
+    if (!isEdit) {
+      document.getElementById('nf-codigo').value = '';
+      document.getElementById('nf-desc').value = '';
+      document.getElementById('nf-codigo').focus();
+    }
+  });
+}
 
-      function cambiarTab(tabIndex, elemento) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('tab' + tabIndex).classList.add('active');
-        elemento.classList.add('active');
-      }
+let selectedSocioCod = '20100113610';
 
-      const barraNav = document.querySelector('.bottom-nav');
-      document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('focus', () => { barraNav.style.display = 'none'; });
-        input.addEventListener('blur', () => { barraNav.style.display = 'flex'; });
+function openTablaClientesSociosModal(returnToCompra = false) {
+  let sub = document.getElementById('sub-mask');
+  if (!sub) {
+    sub = document.createElement('div');
+    sub.id = 'sub-mask';
+    sub.className = 'modal-mask open';
+    sub.style.zIndex = '320';
+    document.body.appendChild(sub);
+  } else {
+    sub.classList.add('open');
+  }
+
+  sub.innerHTML = `
+    <div class="modal-box" style="width:740px; max-width:96vw;">
+      <div class="vfp-win-title">
+        <span>Tabla de Clientes Socios</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="closeSubModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <div class="vfp-toolbar" style="margin:-5px -5px 6px -5px;">
+          <button class="vfp-tbtn" onclick="openAddSocioForm(${returnToCompra})"><span class="ico">📄</span>Add</button>
+          <button class="vfp-tbtn" onclick="openAddSocioForm(${returnToCompra}, true)"><span class="ico">✏️</span>Modifica</button>
+          <button class="vfp-tbtn" onclick="deleteSocio(${returnToCompra})"><span class="ico">🗑️</span>Borrar</button>
+          <button class="vfp-tbtn" onclick="openAddSocioForm(${returnToCompra}, true)"><span class="ico">🔍</span>Zoom</button>
+          <button class="vfp-tbtn" onclick="closeSubModal()"><span class="ico">🚪</span>Salir</button>
+        </div>
+        <div id="socio-form-container"></div>
+        <div class="vfp-grid-box" style="height:240px;">
+          <table class="vfp-grid">
+            <thead><tr><th>Codigo</th><th>TipoDoc</th><th>Nombre / Razon Social</th><th>Direccion</th></tr></thead>
+            <tbody>
+              ${db.socios.map(s => `
+                <tr class="${s.codigo === selectedSocioCod ? 'active-row' : ''}" onclick="selectedSocioCod='${s.codigo}'; openTablaClientesSociosModal(${returnToCompra});" ondblclick="${returnToCompra ? 'selectSocioForCompra()' : ''}">
+                  <td>${s.codigo}</td><td>${s.tipoDoc}</td><td>${s.nombre}</td><td>${s.dir}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ${returnToCompra ? `<div style="margin-top:6px; text-align:right;"><button class="vfp-btn" style="background:#FFFF99; font-weight:bold;" onclick="selectSocioForCompra()">Seleccionar Proveedor</button></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function openAddSocioForm(returnToCompra, isEdit = false) {
+  const s = isEdit ? db.socios.find(x => x.codigo === selectedSocioCod) : null;
+  document.getElementById('socio-form-container').innerHTML = `
+    <div class="tp-sec-box" style="margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:grid; grid-template-columns: 115px 140px 70px 140px; gap:4px; align-items:center;">
+        <label>Codigo (RUC/DNI)</label>
+        <input type="text" id="soc-cod" class="req" value="${s ? s.codigo : ''}" ${isEdit?'readonly class="ro"':''}>
+        <label>TipoDoc</label>
+        <select id="soc-tdoc" class="req">
+          <option value="J" ${s?.tipoDoc==='J'?'selected':''}>Juridica</option>
+          <option value="C" ${s?.tipoDoc==='C'?'selected':''}>Civil</option>
+          <option value="P" ${s?.tipoDoc==='P'?'selected':''}>Pasaporte</option>
+          <option value="E" ${s?.tipoDoc==='E'?'selected':''}>C.Extranjeria</option>
+          <option value="O" ${s?.tipoDoc==='O'?'selected':''}>O.Otros</option>
+        </select>
+        <label>Nombre/Razon Social</label>
+        <input type="text" id="soc-nom" class="req" style="grid-column: span 3;" value="${s ? s.nombre : ''}">
+        <label>Direccion</label>
+        <input type="text" id="soc-dir" style="grid-column: span 3;" value="${s ? s.dir : ''}">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <button class="vfp-btn" style="height:32px;" onclick="saveSocioForm(${returnToCompra}, ${isEdit})">💾 Guarda</button>
+        <button class="vfp-btn" style="height:28px;" onclick="document.getElementById('socio-form-container').innerHTML=''">Cierra</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveSocioForm(returnToCompra, isEdit) {
+  const codigo = document.getElementById('soc-cod').value.trim();
+  const tipoDoc = document.getElementById('soc-tdoc').value;
+  const nombre = document.getElementById('soc-nom').value.trim().toUpperCase();
+  const dir = document.getElementById('soc-dir').value.trim().toUpperCase();
+  if (!codigo || !nombre) return showVfpNotice('Ingrese Codigo y Nombre/Razon Social.');
+  if (isEdit) {
+    const obj = db.socios.find(x => x.codigo === codigo);
+    if (obj) { obj.tipoDoc = tipoDoc; obj.nombre = nombre; obj.dir = dir; }
+  } else {
+    db.socios.push({ codigo, tipoDoc, nombre, dir, telefono: '', esProv: true, esCli: true });
+  }
+  selectedSocioCod = codigo;
+  saveDB();
+  showVfpNotice('Proceso Grabado', () => openTablaClientesSociosModal(returnToCompra));
+}
+function deleteSocio(returnToCompra) {
+  showVfpConfirm(`¿Borrar socio ${selectedSocioCod}?`, () => {
+    db.socios = db.socios.filter(x => x.codigo !== selectedSocioCod);
+    selectedSocioCod = db.socios[0]?.codigo || '';
+    saveDB();
+    openTablaClientesSociosModal(returnToCompra);
+  });
+}
+function selectSocioForCompra() {
+  const s = db.socios.find(x => x.codigo === selectedSocioCod);
+  if (s) {
+    if (document.getElementById('fc-ruc')) document.getElementById('fc-ruc').value = s.codigo;
+    if (document.getElementById('fc-nombre')) document.getElementById('fc-nombre').value = s.nombre;
+    if (document.getElementById('fc-dir')) document.getElementById('fc-dir').value = s.dir;
+  }
+  closeSubModal();
+}
+
+/* ============================================================================
+   10. VENTANA DE CONSULTA 'F1'
+   ============================================================================ */
+function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, customCallback = null) {
+  let rows = [];
+  let headers = [];
+
+  if (tipo === 'FAMILIA') {
+    headers = ['Descripcio', 'Familia'];
+    rows = db.familias.map(f => ({ col1: f.descripcio, col2: f.familia, raw: f }));
+  } else if (tipo === 'PROVEEDOR') {
+    headers = ['Nombre', 'Codigo', 'Direccion'];
+    rows = db.socios.map(p => ({ col1: p.nombre, col2: p.codigo, col3: p.dir, raw: p }));
+  } else if (tipo === 'TIPODOC') {
+    headers = ['Descrip', 'Tipo'];
+    rows = db.tiposDocCompra.map(t => ({ col1: t.descrip, col2: t.tipo, raw: t }));
+  } else if (tipo === 'FORMAPAGO') {
+    headers = ['Descrip', 'Fpago'];
+    rows = db.formasPago.map(fp => ({ col1: fp.descrip, col2: fp.pago, raw: fp }));
+  } else if (tipo === 'PRODUCTO') {
+    headers = ['Producto.Descripcio', 'Codigo', 'Und', 'Factor', 'P', 'Mon', 'Fam', 'Igv'];
+    rows = db.productos.map(pr => ({
+      col1: pr.descrip, col2: pr.codigo, col3: pr.unidad, col4: pr.factor, col5: Number(pr.pvta).toFixed(2), col6: 'S', col7: pr.familia, col8: pr.igv, raw: pr
+    }));
+  }
+
+  window._consRows = rows;
+  window._consSelIdx = 0;
+  window._consPick = (idx) => {
+    const picked = window._consRows[idx];
+    if (!picked) return;
+    if (customCallback) {
+      customCallback(picked.raw);
+      return;
+    }
+    if (targetCodeId && document.getElementById(targetCodeId)) document.getElementById(targetCodeId).value = picked.col2;
+    if (targetDescId && document.getElementById(targetDescId)) document.getElementById(targetDescId).value = picked.col1;
+    closeSubModal();
+    if (tipo === 'FORMAPAGO' && picked.col2 === '1') {
+      openDatosAdicionalesPopup();
+    }
+  };
+
+  let sub = document.getElementById('sub-mask');
+  if (!sub) {
+    sub = document.createElement('div');
+    sub.id = 'sub-mask';
+    sub.className = 'modal-mask open';
+    sub.style.zIndex = '320';
+    document.body.appendChild(sub);
+  } else {
+    sub.classList.add('open');
+  }
+
+  const firstProd = tipo === 'PRODUCTO' && rows[0] ? rows[0].raw : null;
+
+  sub.innerHTML = `
+    <div class="modal-box" style="width:650px; max-width:96vw;">
+      <div class="vfp-win-title">
+        <span>Consulta</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="closeSubModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+          <select style="width:140px;"><option>${headers[0]}</option></select>
+          <select style="width:45px;"><option>%</option></select>
+          <input type="text" id="sub-cons-filter" style="flex:1;" onkeyup="filterSubConsulta(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window._consPick(window._consSelIdx);}" autofocus>
+          <button class="vfp-btn" style="width:75px;" onclick="filterSubConsulta(document.getElementById('sub-cons-filter').value)">Filtrar</button>
+          <button class="vfp-btn" style="width:85px; font-weight:bold;" onclick="window._consPick(window._consSelIdx)">Seleccionar</button>
+        </div>
+
+        <div class="vfp-grid-box" style="height:245px;">
+          <table class="vfp-grid" id="sub-cons-table">
+            <thead>
+              <tr>
+                <th style="width:18px;"></th>
+                ${headers.map(h => `<th>${h}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((r, i) => `
+                <tr class="${i===0?'active-row':''}" onclick="selectSubConsultaRow(${i}, this)" ondblclick="window._consPick(${i})">
+                  <td>${i===0?'▶':''}</td>
+                  <td>${r.col1}</td>
+                  <td>${r.col2}</td>
+                  ${r.col3 !== undefined ? `<td>${r.col3}</td>` : ''}
+                  ${r.col4 !== undefined ? `<td>${r.col4}</td>` : ''}
+                  ${r.col5 !== undefined ? `<td>${r.col5}</td>` : ''}
+                  ${r.col6 !== undefined ? `<td>${r.col6}</td>` : ''}
+                  ${r.col7 !== undefined ? `<td>${r.col7}</td>` : ''}
+                  ${r.col8 !== undefined ? `<td>${r.col8}</td>` : ''}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        ${tipo === 'PRODUCTO' ? `
+          <div class="vfp-grid-box" style="height:55px; margin-top:4px;">
+            <table class="vfp-grid">
+              <thead><tr><th>Unidad1</th><th>Pventa1</th><th>Unidad2</th><th>Pventa2</th><th>Unidad3</th><th>Pventa3</th><th>Unidad4</th><th>Pventa4</th></tr></thead>
+              <tbody id="cons-prod-prices">
+                <tr>
+                  <td>${firstProd ? firstProd.unidad : 'UND'}</td>
+                  <td>${firstProd ? Number(firstProd.pvta).toFixed(2) : '0.00'}</td>
+                  <td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('sub-cons-filter')?.focus(), 30);
+}
+
+function selectSubConsultaRow(idx, tr) {
+  window._consSelIdx = idx;
+  document.querySelectorAll('#sub-cons-table tbody tr').forEach(r => {
+    r.classList.remove('active-row');
+    r.firstElementChild.textContent = '';
+  });
+  tr.classList.add('active-row');
+  tr.firstElementChild.textContent = '▶';
+  const picked = window._consRows[idx];
+  const priceBody = document.getElementById('cons-prod-prices');
+  if (priceBody && picked && picked.raw) {
+    priceBody.innerHTML = `<tr><td>${picked.raw.unidad}</td><td>${Number(picked.raw.pvta).toFixed(2)}</td><td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td></tr>`;
+  }
+}
+function filterSubConsulta(q) {
+  q = q.toUpperCase();
+  document.querySelectorAll('#sub-cons-table tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toUpperCase().includes(q) ? '' : 'none';
+  });
+}
+function closeSubModal() {
+  const sub = document.getElementById('sub-mask');
+  if (sub) sub.classList.remove('open');
+}
+
+/* ============================================================================
+   11. DOCUMENTOS FACTURACION COMPRAS (CON MODO 'Ver' EN ZOOM Y 'Modifica')
+   ============================================================================ */
+function renderComprasWindow(ws, esGuia = false) {
+  const lista = esGuia ? db.guiasCompra : db.compras;
+  const hoy = new Date().toISOString().slice(0,10);
+
+  ws.innerHTML = `
+    <div class="vfp-window">
+      <div class="vfp-win-title">
+        <span>${esGuia ? 'Documentos Guias Remision Compra' : 'Documentos Facturacion Compras'}</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="nav('dashboard')">✕</button>
+      </div>
+
+      <div class="vfp-toolbar">
+        <button class="vfp-tbtn" onclick="openFacturaCompraModal('${esGuia?'GE':'FC'}', 'NEW')"><span class="ico">📄</span>Nuevo</button>
+        <button class="vfp-tbtn" onclick="openFacturaCompraModal('${esGuia?'GE':'FC'}', 'NEW')"><span class="ico">📑</span>Nuevo1</button>
+        <button class="vfp-tbtn" onclick="borrarCompraSel(${esGuia})"><span class="ico">🗑️</span>Borrar</button>
+        <button class="vfp-tbtn" onclick="editarCompraGrabada(${esGuia})"><span class="ico">✏️</span>Modifica</button>
+        <button class="vfp-tbtn" onclick="borrarCompraSel(${esGuia})"><span class="ico">🚫</span>Anular</button>
+        <button class="vfp-tbtn" onclick="window.print()"><span class="ico">🖨️</span>Imprimir</button>
+        <button class="vfp-tbtn" onclick="verFacturaCompraModoVer(${esGuia})" title="Abrir factura en modo solo lectura (Ver)"><span class="ico">🔍</span>Zoom</button>
+        <button class="vfp-tbtn" onclick="sumarComprasFooter(${esGuia})"><span class="ico">✔️</span>Validar</button>
+        <button class="vfp-tbtn" onclick="verFacturaCompraModoVer(${esGuia})"><span class="ico">📋</span>Consulta</button>
+        <button class="vfp-tbtn" onclick="nav('inventario')"><span class="ico">📊</span>Procesos</button>
+        <button class="vfp-tbtn" onclick="nav('dashboard')"><span class="ico">🚪</span>Salir</button>
+      </div>
+
+      <!-- Panel Superior de Filtros -->
+      <div class="vfp-out" style="padding:4px 6px; margin:2px; background:var(--aqua-bg); display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 50px 45px 52px 45px 62px 92px 26px 92px 42px 45px 50px 55px 45px 45px 48px 45px; gap:2px; align-items:center; font-size:10px;">
+          <span>Local</span><input type="text" value="01" style="height:18px;">
+          <span>Impreso</span><input type="text" value="%" style="height:18px;">
+          <span>Fecha Del</span><input type="date" value="2021-01-01" style="height:18px;">
+          <span>Al</span><input type="date" value="${hoy}" style="height:18px;">
+          <span>Caja</span><input type="text" value="%" style="height:18px;">
+          <span>Usuario</span><input type="text" value="%" style="height:18px;">
+          <span>Numero</span><input type="text" value="%" style="height:18px;">
+          <span>NStock</span><input type="text" value="%" style="height:18px;">
+
+          <span>Almacen</span><input type="text" value="01" style="height:18px;">
+          <span>Anulado</span><input type="text" value="%" style="height:18px;">
+          <span>Fecha Venc</span><input type="date" value="2021-01-01" style="height:18px;">
+          <span>Al</span><input type="date" value="${hoy}" style="height:18px;">
+          <span>TipDoc</span><input type="text" value="%" style="height:18px;">
+          <span>Consulta</span><input type="text" value="%" style="height:18px;">
+          <span>Serie</span><input type="text" value="%" style="height:18px;">
+          <span>TipOpe</span><input type="text" value="%" style="height:18px;">
+        </div>
+        <button class="vfp-btn" style="width:42px; height:36px; font-size:18px; color:#00A000;" onclick="renderComprasWindow(document.getElementById('workspace'), ${esGuia})">✔</button>
+      </div>
+
+      <!-- Tabla Principal -->
+      <div class="vfp-grid-box" style="flex:1; margin:0 2px;">
+        <table class="vfp-grid">
+          <thead>
+            <tr>
+              <th>A</th><th>C</th><th>E</th><th>Tipo</th><th>Serie</th><th>Numero</th><th>Fecha</th><th>FechaV</th><th>Hora</th><th>T</th><th>Codigo</th><th>Nombre</th><th>M</th><th>Total</th><th>Acuenta</th><th>Saldo</th><th>Bod</th><th>LocF</th><th>Item</th><th>Cajero</th><th>Proceso</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lista.map((c, idx) => `
+              <tr class="${idx === selectedCompraIdx ? 'active-row' : ''}" onclick="selectedCompraIdx=${idx}; renderComprasWindow(document.getElementById('workspace'), ${esGuia})" ondblclick="verFacturaCompraModoVer(${esGuia})" title="Doble clic o Zoom para abrir en modo Ver">
+                <td>N</td>
+                <td><b>C</b></td>
+                <td></td>
+                <td>${c.tipo}</td>
+                <td>${c.serie}</td>
+                <td>${c.numero}</td>
+                <td>${c.fecha}</td>
+                <td>${c.fecha}</td>
+                <td>${c.hora || '18:35:05'}</td>
+                <td>1</td>
+                <td>${c.ruc}</td>
+                <td>${c.proveedor}</td>
+                <td>${c.moneda}</td>
+                <td style="text-align:right; font-weight:bold;">${Number(c.total).toFixed(2)}</td>
+                <td style="text-align:right;">${Number(c.total).toFixed(2)}</td>
+                <td style="text-align:right;">0</td>
+                <td>01</td>
+                <td>01</td>
+                <td style="text-align:right;">${c.totalUnidades || c.items.length}</td>
+                <td>${c.vendedor || 'ADM'}</td>
+                <td></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Barra Inferior de Totales + Botón Sumar -->
+      <div class="vfp-out" style="padding:4px 8px; margin:2px; background:var(--aqua-bg); display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:grid; grid-template-columns: 75px 42px 32px 75px 75px 75px 75px 75px; gap:2px; align-items:center; font-size:10px;">
+          <span>Totales</span><input type="text" id="sum-count" class="req" value="0" style="text-align:right; height:18px;">
+          <b>S/</b>
+          <input type="text" id="sum-tot" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" id="sum-sub" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" id="sum-igv" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+
+          <span>Anulados</span><input type="text" class="req" value="0" style="text-align:right; height:18px;">
+          <b>US$</b>
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+
+          <span>NoGravados</span><input type="text" class="req" value="0" style="text-align:right; height:18px;">
+          <span></span>
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+          <input type="text" class="req" value="0.00" style="text-align:right; height:18px;">
+        </div>
+        <button class="vfp-btn" style="width:95px; height:32px; font-weight:bold;" onclick="sumarComprasFooter(${esGuia})">Sumar</button>
+      </div>
+    </div>
+  `;
+}
+
+function sumarComprasFooter(esGuia) {
+  const lista = esGuia ? db.guiasCompra : db.compras;
+  const tot = lista.reduce((s,c)=>s+c.total, 0);
+  const sub = lista.reduce((s,c)=>s+c.subtotal, 0);
+  const igv = lista.reduce((s,c)=>s+c.igv, 0);
+  document.getElementById('sum-count').value = lista.length;
+  document.getElementById('sum-tot').value = tot.toFixed(2);
+  document.getElementById('sum-sub').value = sub.toFixed(2);
+  document.getElementById('sum-igv').value = igv.toFixed(2);
+}
+
+function verFacturaCompraModoVer(esGuia) {
+  const lista = esGuia ? db.guiasCompra : db.compras;
+  const doc = lista[selectedCompraIdx];
+  if (!doc) return showVfpNotice('Seleccione un documento en la grilla.');
+  openFacturaCompraModal(doc.tipo, 'VER', null, selectedCompraIdx, esGuia);
+}
+
+function editarCompraGrabada(esGuia) {
+  const lista = esGuia ? db.guiasCompra : db.compras;
+  const doc = lista[selectedCompraIdx];
+  if (!doc) return showVfpNotice('Seleccione un documento registrado en la grilla.');
+
+  let authMask = document.getElementById('auth-mask');
+  if (!authMask) {
+    authMask = document.createElement('div');
+    authMask.id = 'auth-mask';
+    authMask.className = 'modal-mask open';
+    authMask.style.zIndex = '450';
+    document.body.appendChild(authMask);
+  } else {
+    authMask.classList.add('open');
+  }
+
+  window._checkEditPass = () => {
+    const val = document.getElementById('edit-doc-pass').value.trim();
+    if (val === CLAVE_6_DIGITOS) {
+      authMask.classList.remove('open');
+      showVfpConfirm('Desea Desmarcar el Documento', () => {
+        openFacturaCompraModal(doc.tipo, 'EDIT', null, selectedCompraIdx, esGuia);
       });
+    } else {
+      showVfpNotice('Clave Incorrecta');
+    }
+  };
 
-      function calcularTodo() {
-        var b1 = getVal('b1'); var b2 = getVal('b2'); var b3 = getVal('b3'); var b4 = getVal('b4');
-        var totalEfectivo = b1 + b2 + b3 + b4;
-        var p1 = getVal('p1'); var p2 = getVal('p2'); var p3 = getVal('p3'); var p4 = getVal('p4'); 
-        var p5 = getVal('p5'); var p6 = getVal('p6'); var p7 = getVal('p7'); var p8 = getVal('p8');
-        var totalRecibo = p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8;
+  authMask.innerHTML = `
+    <div class="modal-box" style="width:270px;">
+      <div class="vfp-win-title"><span>Ingrese su clave para realizar esta Accion</span></div>
+      <div class="modal-content" style="background:var(--win-face); padding:10px; text-align:center;">
+        <input type="password" id="edit-doc-pass" maxlength="6" style="width:180px; text-align:center; font-size:14px; letter-spacing:2px; margin-bottom:10px;" autofocus onkeydown="if(event.key==='Enter') window._checkEditPass()">
+        <div style="display:flex; justify-content:center; gap:24px;">
+          <button class="vfp-btn" style="width:42px; height:32px; font-size:18px; color:#00A000;" onclick="window._checkEditPass()">✔</button>
+          <button class="vfp-btn" style="width:42px; height:32px; font-size:18px; color:#D80000;" onclick="document.getElementById('auth-mask').classList.remove('open')">✖</button>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('edit-doc-pass')?.focus(), 30);
+}
 
-        document.getElementById('lblEfectivo').innerText = formatoSoles(totalEfectivo);
-        document.getElementById('lblRecibo').innerText = formatoSoles(totalRecibo);
+function borrarCompraSel(esGuia) {
+  const lista = esGuia ? db.guiasCompra : db.compras;
+  if (!lista[selectedCompraIdx]) return;
+  showVfpConfirm('¿Desea eliminar/anular el documento seleccionado?', () => {
+    lista.splice(selectedCompraIdx, 1);
+    saveDB();
+    renderComprasWindow(document.getElementById('workspace'), esGuia);
+  });
+}
 
-        var diferencia = totalEfectivo - totalRecibo;
-        var panel = document.getElementById('panelFinal');
-        var texto = document.getElementById('textoFinal');
-        var monto = document.getElementById('montoFinal');
+/* ============================================================================
+   12. 'Factura de Compra' COMPLETA (CON TODAS LAS COLUMNAS HORIZONTALES Y PERCEPCIÓN)
+   Modos: 'NEW' (Nuevo), 'EDIT' (Modifica), 'VER' (Auditoría en solo lectura)
+   ============================================================================ */
+let compraDraftItems = [];
+let editingCompraIndex = null;
+let currentCompraMode = 'NEW';
 
-        if (totalRecibo === 0 && totalEfectivo === 0) {
-          panel.className = "panel-resultado estado-esperando";
-          texto.innerText = "ESPERANDO..."; monto.innerText = "0.00";
-        } else if (totalRecibo === 0 && totalEfectivo > 0) {
-          panel.className = "panel-resultado estado-proceso";
-          texto.innerText = "DEPÓSITO / EN PROCESO"; monto.innerText = formatoSoles(totalEfectivo);
-        } else if (totalRecibo > 0 && totalEfectivo === 0) {
-          panel.className = "panel-resultado estado-cobrar";
-          texto.innerText = "POR COBRAR"; monto.innerText = formatoSoles(totalRecibo);
-        } else {
-          if (diferencia < 0) {
-            panel.className = "panel-resultado estado-faltante";
-            texto.innerText = "FALTANTE"; monto.innerText = formatoSoles(Math.abs(diferencia));
-          } else if (diferencia === 0) {
-            panel.className = "panel-resultado estado-exacto";
-            texto.innerText = "PAGO EXACTO"; monto.innerText = formatoSoles(0);
-          } else {
-            panel.className = "panel-resultado estado-vuelto";
-            texto.innerText = "VUELTO"; monto.innerText = formatoSoles(diferencia);
-          }
-        }
+function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode = null, editIdx = null, esGuiaEdit = false) {
+  currentCompraMode = mode;
+  editingCompraIndex = editIdx;
+  const isVer = (mode === 'VER');
+  const roAttr = isVer ? 'readonly class="ro"' : '';
+  const disAttr = isVer ? 'disabled' : '';
+
+  const lista = esGuiaEdit ? db.guiasCompra : db.compras;
+  const existingDoc = editIdx !== null ? lista[editIdx] : null;
+
+  if (existingDoc) {
+    compraDraftItems = JSON.parse(JSON.stringify(existingDoc.items));
+  } else if (preAddProdCode) {
+    const pr = db.productos.find(x => x.codigo === preAddProdCode);
+    if (pr && !compraDraftItems.some(i => i.codigo === pr.codigo)) {
+      const nowH = new Date().toTimeString().slice(0,7);
+      compraDraftItems.push({
+        codigo: pr.codigo, descrip: pr.descrip, unidad: pr.unidad, factor: pr.factor || 1,
+        cant: 10, recib: 10, precio: pr.costo || 1.00, desc: 0,
+        percPct: pr.percep || (pr.familia === 'CERVEZ' ? 2 : 0), iscPct: 0, igvPct: pr.igv || 18,
+        familia: pr.familia, subfamilia: pr.subfamilia || '', marca: pr.marca || '',
+        hora: nowH, costoAnt: pr.costoUlt || pr.costo || 0
+      });
+    }
+  } else {
+    compraDraftItems = [];
+  }
+
+  const hoy = new Date().toISOString().slice(0,10);
+  const nextNum = existingDoc ? existingDoc.numero : String(102 + db.compras.length).padStart(8, '0');
+  const modeLabel = mode === 'VER' ? 'Ver' : (mode === 'EDIT' ? 'Modifica' : 'Nuevo');
+
+  openModal('Factura de Compra', `
+    <div style="width:940px; max-width:97vw;">
+      <!-- Barra superior de texto exacta de las capturas 1564-1569 -->
+      <div class="vfp-subbar" style="margin:-5px -5px 3px -5px;">
+        ${['Grabar','AgruparSaldo','ProductosParaPedido','ConteoFisico','VerMovimiento','CargaSaldoActual','CargaExcellSaldoIni','Recosteo','CargaExcellGuia','Salir'].map(t => `
+          <button class="vfp-btn" style="font-size:10px; padding:2px 5px;" ${t==='Grabar' && isVer ? 'disabled' : ''} onclick="${t==='Grabar'?'confirmarGrabarCompra()':(t==='Salir'?'closeModal()':'recalcFacturaCompraTotals()')}">${t}</button>
+        `).join('')}
+      </div>
+
+      <!-- Barra de iconos + Etiqueta central 'Ver' / 'Nuevo' / 'Modifica' -->
+      <div class="vfp-toolbar" style="margin:0 -5px 5px -5px; justify-content:space-between;">
+        <div style="display:flex; gap:3px;">
+          <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="openFacturaCompraModal('FC', 'NEW')" title="Nuevo">📄</button>
+          <button class="vfp-btn" style="height:26px; width:32px;" onclick="window.print()" title="Imprimir">🖨️</button>
+          <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="confirmarGrabarCompra()" title="Grabar">💾</button>
+          <button class="vfp-btn" style="height:26px; width:32px;" onclick="closeModal()" title="Salir">🚪</button>
+        </div>
+        <div style="font-weight:bold; font-size:12px; color:#000;">${modeLabel}</div>
+        <div style="width:120px;"></div>
+      </div>
+
+      <!-- Cabecera de Factura de Compra exacta (sin solapamientos) -->
+      <div style="display:grid; grid-template-columns: 52px 150px 64px 104px 54px 55px 82px 55px 68px 1fr; gap:3px 5px; align-items:center; margin-bottom:6px; font-size:10.5px;">
+        <label>Tipo</label>
+        <div style="display:flex; gap:2px;">
+          <input type="text" id="fc-tipo" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.tipo : defaultTipo}" style="width:118px;" data-f1="openConsultaModal('TIPODOC','fc-tipo')">
+          <button class="f1-btn" ${disAttr} onclick="openConsultaModal('TIPODOC','fc-tipo')">F1</button>
+        </div>
+        <label>F.Emision</label>
+        <input type="date" id="fc-emision" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.fecha : hoy}" style="width:100%;">
+        <label>Nro.Dias</label>
+        <input type="number" id="fc-dias" ${roAttr} value="${existingDoc ? existingDoc.dias : 1}" style="width:100%;">
+        <label>Local Act</label>
+        <input type="text" class="ro" readonly value="01" style="width:100%;">
+        <span></span><span></span>
+
+        <label>Serie</label>
+        <input type="text" id="fc-serie" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.serie : 'FD29'}" style="width:118px;">
+        <label>F.Entrega</label>
+        <input type="date" id="fc-entrega" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.fechaEntrega || existingDoc.fecha : hoy}" style="width:100%;">
+        <label>T/Cambio</label>
+        <input type="text" class="ro" readonly value="1" style="width:100%;">
+        <label>Almacen Actual</label>
+        <input type="text" class="ro" readonly value="01" style="width:100%;">
+        <span></span><span></span>
+
+        <label>Numero</label>
+        <input type="text" id="fc-numero" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${nextNum}" style="width:118px;">
+        <label>Moneda</label>
+        <select id="fc-moneda" class="${isVer?'ro':'req'}" ${disAttr} style="width:100%;"><option value="S">S</option><option value="D">D</option></select>
+        <label>Vendedor</label>
+        <input type="text" id="fc-vend" class="ro" readonly value="${existingDoc ? existingDoc.vendedor || 'ADM' : 'ADM'}" style="width:100%;">
+        <label>Observa</label>
+        <input type="text" id="fc-observa" ${roAttr} style="grid-column: span 3; width:100%;" value="">
+
+        <label>Codigo</label>
+        <div style="display:flex; gap:2px;">
+          <input type="text" id="fc-ruc" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} style="width:94px;" value="${existingDoc ? existingDoc.ruc : ''}"
+                 data-f1="openConsultaModal('PROVEEDOR','fc-ruc','fc-nombre')"
+                 data-f7="openTablaClientesSociosModal(true)"
+                 onchange="syncCompraProv()">
+          <button class="f1-btn" ${disAttr} onclick="openConsultaModal('PROVEEDOR','fc-ruc','fc-nombre')">F1</button>
+          <button class="f1-btn" ${disAttr} onclick="openTablaClientesSociosModal(true)" title="F7 Tabla de Clientes Socios">F7</button>
+        </div>
+        <label>FormaPago</label>
+        <div style="display:flex; gap:2px;">
+          <input type="text" id="fc-pago" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.formaPago : '1'}" style="width:74px;" data-f1="openConsultaModal('FORMAPAGO','fc-pago')">
+          <button class="f1-btn" ${disAttr} onclick="openConsultaModal('FORMAPAGO','fc-pago')">F1</button>
+        </div>
+        <label style="grid-column: span 2; display:flex; align-items:center; gap:3px;"><input type="checkbox" ${disAttr} style="height:13px;"> Sin Igv</label>
+        <label style="grid-column: span 2; display:flex; align-items:center; gap:3px;"><input type="checkbox" ${disAttr} style="height:13px;"> SinStock</label>
+        <label>Transport.</label>
+        <input type="text" ${roAttr} style="width:100%;">
+
+        <label>Nombre</label>
+        <input type="text" id="fc-nombre" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} style="grid-column: span 4; width:100%;" value="${existingDoc ? existingDoc.proveedor : ''}">
+        <label>Dir.Partida</label>
+        <input type="text" id="fc-dir" ${roAttr} style="grid-column: span 4; width:100%;" value="">
+      </div>
+
+      <!-- Barra de búsqueda / digitación de producto (Oculta en modo Ver) -->
+      ${!isVer ? `
+        <div class="vfp-out" style="padding:3px 6px; margin-bottom:4px; display:flex; gap:4px; align-items:center; background:#D4D0C8;">
+          <b>Producto (F1):</b>
+          <input type="text" id="fc-item-search" placeholder="Escribe código/nombre o presiona F1 para Consulta, F7 para crear producto nuevo..." style="flex:1;"
+                 data-f1="buscarProductoParaCompra()"
+                 data-f7="openTablaProductoModal(null, 'NUEVO', true)"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault(); buscarProductoParaCompra();}">
+          <button class="vfp-btn" onclick="buscarProductoParaCompra()">F1 Consulta</button>
+          <button class="vfp-btn" style="background:#FFFF99;" onclick="openTablaProductoModal(null, 'NUEVO', true)">F7 Nuevo Prod</button>
+        </div>
+      ` : ''}
+
+      <!-- Grilla Horizontalmente Deslizable con TODAS las columnas de las capturas 1564 -> 1569 + Panel Derecho -->
+      <div style="display:grid; grid-template-columns: 1fr 82px; gap:4px; margin-bottom:5px;">
+        <div class="vfp-grid-box" style="height:185px; overflow-x:auto;">
+          <table class="vfp-grid" style="min-width:1950px;">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Descripcio</th>
+                <th>Und</th>
+                <th>Factor</th>
+                <th>Cant</th>
+                <th>Recib</th>
+                <th>Precio</th>
+                <th>%Desc</th>
+                <th>Total</th>
+                <th>Subt</th>
+                <th>%Perc</th>
+                <th>%Isc</th>
+                <th>%Igv</th>
+                <th>%Ivap</th>
+                <th>Serie</th>
+                <th>Numero</th>
+                <th>Vend</th>
+                <th>linea</th>
+                <th>t1</th><th>t2</th><th>t3</th><th>t4</th><th>t5</th><th>t6</th><th>t7</th><th>t8</th><th>t9</th>
+                <th>T12</th><th>T13</th><th>t14</th><th>t15</th><th>t16</th>
+                <th>L1</th><th>L2</th><th>L3</th><th>L4</th>
+                <th>%Detra</th>
+                <th>Observa1</th><th>Observa2</th><th>Observa3</th><th>Observa4</th>
+                <th>ToIg</th>
+                <th>Tipo</th>
+                <th>Familia</th>
+                <th>Subfamilia</th>
+                <th>Marca</th>
+                <th>Ccosto</th>
+                <th>Descuent</th>
+                <th>Neto</th>
+                <th>Toperce</th>
+                <th>Hora</th>
+                <th>CostoAnterior</th>
+                <th>Tisc</th>
+                <th>%Flete</th>
+                <th>Tivap</th>
+                <th>Exo</th>
+                <th>Destopo</th>
+                <th>TDetra</th>
+                <th>Serviciopo</th>
+                <th>Servicioco</th>
+              </tr>
+            </thead>
+            <tbody id="fc-grid-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Panel Derecho Exacto (Recalcular, Lista Nro 01, Contador Total Unidades e.g. 378.00, BorrarTodo, Serie, Observa) -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <button class="vfp-btn" style="height:26px;" ${isVer ? 'disabled' : ''} onclick="recalcFacturaCompraTotals()">Recalcular</button>
+          <div style="font-size:10px;">Lista Nro</div>
+          <select ${disAttr} style="height:19px;"><option>01</option></select>
+          <input type="text" id="fc-total-units-box" class="ro" readonly value="0.00" style="height:22px; font-weight:bold; text-align:right; background:#FFF !important;" title="Suma total de unidades ingresadas">
+          <button class="vfp-btn" style="height:26px;" ${isVer ? 'disabled' : ''} onclick="compraDraftItems=[]; renderFacturaCompraGrid();">BorrarTodo</button>
+          <button class="vfp-btn" style="height:24px;" onclick="showVfpNotice('Serie / Lote: 01')">Serie</button>
+          <button class="vfp-btn" style="height:24px;" onclick="openDatosAdicionalesPopup()">Observa</button>
+        </div>
+      </div>
+
+      <!-- Pie de Totales Exacto de las Capturas (5 bloques limpios con anchos garantizados) -->
+      <div style="display:grid; grid-template-columns: 120px 175px 175px 165px 185px; gap:8px; align-items:end; font-size:10.5px; padding-top:4px; border-top:1px solid #66AAAA;">
+        <!-- Bloque 0: Contador ítems + Bolsa -->
+        <div style="display:grid; grid-template-columns: 42px 68px; gap:3px 4px; align-items:center;">
+          <span>Items</span><input type="text" id="fc-items-count" class="ro" readonly value="0" style="width:100%; height:18px; text-align:right;">
+          <span>Bolsa</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+        </div>
+
+        <!-- Bloque 1: CostoAnterior, CostoFactura, Diferencia, Otros -->
+        <div style="display:grid; grid-template-columns: 78px 86px; gap:3px 4px; align-items:center;">
+          <span>CostoAnterior</span><input type="text" id="fc-cost-ant" class="ro" readonly value="" style="width:100%; height:18px; text-align:right;">
+          <span>CostoFactura</span><input type="text" id="fc-cost-fac" class="ro" readonly value="" style="width:100%; height:18px; text-align:right;">
+          <span>Diferencia</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Otros</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+        </div>
+
+        <!-- Bloque 2: Neto, Descuento, Subtotal, NoGravado -->
+        <div style="display:grid; grid-template-columns: 68px 96px; gap:3px 4px; align-items:center;">
+          <span>Neto</span><input type="text" id="fc-neto" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Descuento</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Subtotal</span><input type="text" id="fc-subtotal" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>NoGravado</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+        </div>
+
+        <!-- Bloque 3: Flete, Ivap, Isc, Gravado -->
+        <div style="display:grid; grid-template-columns: 58px 96px; gap:3px 4px; align-items:center;">
+          <span>Flete</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Ivap</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Isc</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Gravado</span><input type="text" id="fc-gravado" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+        </div>
+
+        <!-- Bloque 4: Total, Impuesto, Percepcion, Detraccion -->
+        <div style="display:grid; grid-template-columns: 68px 104px; gap:3px 4px; align-items:center;">
+          <span>Total</span><input type="text" id="fc-total" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right; font-weight:bold;">
+          <span>Impuesto</span><input type="text" id="fc-impuesto" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Percepcion</span><input type="text" id="fc-percepcion" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Detraccion</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+        </div>
+      </div>
+    </div>
+  `);
+  renderFacturaCompraGrid();
+}
+
+function syncCompraProv() {
+  const ruc = document.getElementById('fc-ruc').value.trim();
+  const p = db.socios.find(x => x.codigo === ruc);
+  if (p) {
+    document.getElementById('fc-nombre').value = p.nombre;
+    document.getElementById('fc-dir').value = p.dir || '';
+  }
+}
+
+function openDatosAdicionalesPopup() {
+  let sub = document.getElementById('sub-mask');
+  if (!sub) {
+    sub = document.createElement('div');
+    sub.id = 'sub-mask';
+    sub.className = 'modal-mask open';
+    sub.style.zIndex = '330';
+    document.body.appendChild(sub);
+  } else {
+    sub.classList.add('open');
+  }
+  const hoy = new Date().toLocaleDateString('es-PE');
+  const hora = new Date().toTimeString().slice(0,8);
+
+  sub.innerHTML = `
+    <div class="modal-box" style="width:410px;">
+      <div class="vfp-win-title">
+        <span>Datos Adicionales</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="closeSubModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="display:grid; grid-template-columns: 85px 120px; gap:3px; align-items:center;">
+            <span>Local</span><input type="text" class="ro" readonly value="01">
+            <span>Turno</span><input type="text" class="ro" readonly value="1">
+            <span>Cajero</span><input type="text" class="ro" readonly value="IDE">
+            <span>Fecha Serial</span><input type="text" class="ro" readonly value="${hoy}">
+            <span>Servicio</span><input type="text" class="ro" readonly value="0">
+            <span>Hora</span><input type="text" class="ro" readonly value="${hora}">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="vfp-btn" style="width:42px; height:36px; font-size:18px; color:#D80000;" onclick="closeSubModal()">✖</button>
+            <button class="vfp-btn" style="width:42px; height:36px; font-size:18px; color:#00A000;" onclick="closeSubModal()">✔</button>
+          </div>
+        </div>
+        <div style="margin-top:8px; border-top:1px solid #66AAAA; padding-top:6px;">
+          <div style="font-weight:bold; margin-bottom:4px;">Documento Cruce</div>
+          <div style="display:grid; grid-template-columns: 85px 1fr; gap:3px; align-items:center;">
+            <span>Tipo</span><input type="text" value="Orden de Compra">
+            <span>Numero</span><input type="text" value="">
+            <span>Observa1</span><input type="text" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buscarProductoParaCompra() {
+  const q = document.getElementById('fc-item-search').value.trim().toUpperCase();
+  const exact = db.productos.find(p => p.codigo === q || p.barras === q);
+  if (exact) {
+    agregarProductoAFilaCompra(exact);
+    document.getElementById('fc-item-search').value = '';
+    return;
+  }
+  openConsultaModal('PRODUCTO', null, null, (prod) => {
+    agregarProductoAFilaCompra(prod);
+    closeSubModal();
+    document.getElementById('fc-item-search').value = '';
+  });
+  if (q) {
+    setTimeout(() => {
+      const fInp = document.getElementById('sub-cons-filter');
+      if (fInp) { fInp.value = q; filterSubConsulta(q); }
+    }, 40);
+  }
+}
+
+function agregarProductoAFilaCompra(prod) {
+  const exist = compraDraftItems.find(i => i.codigo === prod.codigo);
+  if (exist) {
+    exist.cant += 1;
+    exist.recib = exist.cant;
+  } else {
+    const nowH = new Date().toTimeString().slice(0,7);
+    compraDraftItems.push({
+      codigo: prod.codigo,
+      descrip: prod.descrip,
+      unidad: prod.unidad,
+      factor: prod.factor || 1,
+      cant: 12,
+      recib: 12,
+      precio: prod.costo || 1.00,
+      desc: 0,
+      percPct: prod.percep || (prod.familia === 'CERVEZ' ? 2 : 0),
+      iscPct: 0,
+      igvPct: prod.igv || 18,
+      familia: prod.familia,
+      subfamilia: prod.subfamilia || '',
+      marca: prod.marca || '',
+      hora: nowH,
+      costoAnt: prod.costoUlt || prod.costo || 0
+    });
+  }
+  renderFacturaCompraGrid();
+}
+
+function renderFacturaCompraGrid() {
+  const tbody = document.getElementById('fc-grid-tbody');
+  if (!tbody) return;
+  const isVer = (currentCompraMode === 'VER');
+  const serieDoc = document.getElementById('fc-serie')?.value || 'FD29';
+  const numDoc = document.getElementById('fc-numero')?.value || '00023188';
+  const tipoDoc = document.getElementById('fc-tipo')?.value || 'FC';
+  const vendDoc = document.getElementById('fc-vend')?.value || 'ADM';
+
+  tbody.innerHTML = compraDraftItems.map((it, idx) => {
+    const rowTot = it.cant * it.precio;
+    const rowSub = rowTot / (1 + ((it.igvPct || 18) / 100));
+    const rowIgv = rowTot - rowSub;
+    const rowPerc = rowTot * ((it.percPct || 0) / 100);
+
+    return `
+      <tr>
+        <td><b>${it.codigo}</b></td>
+        <td><b>${it.descrip}</b></td>
+        <td><b>${it.unidad}</b></td>
+        <td style="text-align:right;">${it.factor}</td>
+        <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
+          ${isVer ? `<b>${it.cant}</b>` : `<input type="number" value="${it.cant}" min="1" style="width:52px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].cant=parseFloat(this.value)||0; compraDraftItems[${idx}].recib=compraDraftItems[${idx}].cant; renderFacturaCompraGrid();">`}
+        </td>
+        <td style="text-align:right;">${it.recib || it.cant}</td>
+        <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
+          ${isVer ? `<b>${Number(it.precio).toFixed(3)}</b>` : `<input type="number" step="0.001" value="${it.precio}" style="width:58px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].precio=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
+        </td>
+        <td style="text-align:right;">${it.desc || 0}</td>
+        <td style="text-align:right; font-weight:bold;">${rowTot.toFixed(3)}</td>
+        <td style="text-align:right;">${rowSub.toFixed(2)}</td>
+        <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
+          ${isVer ? (it.percPct || 0) : `<input type="number" step="0.5" value="${it.percPct || 0}" style="width:36px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].percPct=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
+        </td>
+        <td style="text-align:right;">${it.iscPct || 0}</td>
+        <td style="text-align:right;">${it.igvPct || 18}</td>
+        <td style="text-align:right;">0</td>
+        <td><b>${serieDoc}</b></td>
+        <td><b>${numDoc}</b></td>
+        <td><b>${vendDoc}</b></td>
+        <td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+        <td></td><td><b>N</b></td><td></td><td></td>
+        <td>0</td>
+        <td></td><td></td><td></td><td></td>
+        <td style="text-align:right;"><b>${rowIgv.toFixed(2)}</b></td>
+        <td><b>${tipoDoc}</b></td>
+        <td><b>${it.familia}</b></td>
+        <td>${it.subfamilia || ''}</td>
+        <td>${it.marca || ''}</td>
+        <td></td>
+        <td style="text-align:right;">0</td>
+        <td style="text-align:right;"><b>${rowSub.toFixed(2)}</b></td>
+        <td style="text-align:right;"><b>${rowPerc.toFixed(3)}</b></td>
+        <td><b>${it.hora || '18:34:0'}</b></td>
+        <td style="text-align:right;"><b>${Number(it.costoAnt || 0).toFixed(2)}</b></td>
+        <td>0</td><td>0</td><td>0</td>
+        <td>0</td><td></td><td>0</td><td>0</td><td>0</td>
+      </tr>
+    `;
+  }).join('');
+  recalcFacturaCompraTotals();
+}
+
+function recalcFacturaCompraTotals() {
+  let neto = 0;
+  let subtotal = 0;
+  let percepcion = 0;
+  let totalUnidades = 0;
+
+  compraDraftItems.forEach(it => {
+    const rowTot = it.cant * it.precio;
+    const rowSub = rowTot / (1 + ((it.igvPct || 18) / 100));
+    const rowPerc = rowTot * ((it.percPct || 0) / 100);
+    neto += rowTot;
+    subtotal += rowSub;
+    percepcion += rowPerc;
+    totalUnidades += Number(it.cant) || 0;
+  });
+
+  const impuesto = neto - subtotal;
+  const totalGeneral = neto + percepcion;
+
+  document.getElementById('fc-items-count').value = compraDraftItems.length;
+  document.getElementById('fc-total-units-box').value = totalUnidades.toFixed(2);
+  document.getElementById('fc-neto').value = neto.toFixed(2);
+  document.getElementById('fc-subtotal').value = subtotal.toFixed(2);
+  document.getElementById('fc-gravado').value = subtotal.toFixed(2);
+  document.getElementById('fc-impuesto').value = impuesto.toFixed(2);
+  document.getElementById('fc-percepcion').value = percepcion.toFixed(2);
+  document.getElementById('fc-total').value = totalGeneral.toFixed(2);
+}
+
+function confirmarGrabarCompra() {
+  if (currentCompraMode === 'VER') return;
+  if (compraDraftItems.length === 0) return showVfpNotice('Debe agregar al menos un producto a la factura.');
+  const ruc = document.getElementById('fc-ruc').value.trim();
+  const proveedor = document.getElementById('fc-nombre').value.trim().toUpperCase();
+  if (!ruc || !proveedor) return showVfpNotice('Seleccione un Proveedor (F1) antes de grabar.');
+
+  showVfpConfirm('Desea Grabar', () => {
+    const tipo = document.getElementById('fc-tipo').value.trim().toUpperCase() || 'FC';
+    const serie = document.getElementById('fc-serie').value.trim() || 'FD29';
+    const numero = document.getElementById('fc-numero').value.trim() || '00023189';
+    const fecha = document.getElementById('fc-emision').value;
+    const moneda = document.getElementById('fc-moneda').value;
+    const formaPago = document.getElementById('fc-pago').value;
+
+    const neto = parseFloat(document.getElementById('fc-neto').value) || 0;
+    const subtotal = parseFloat(document.getElementById('fc-subtotal').value) || 0;
+    const igv = parseFloat(document.getElementById('fc-impuesto').value) || 0;
+    const percepcion = parseFloat(document.getElementById('fc-percepcion').value) || 0;
+    const total = parseFloat(document.getElementById('fc-total').value) || 0;
+    const totalUnidades = parseFloat(document.getElementById('fc-total-units-box').value) || 0;
+    const horaStr = new Date().toTimeString().slice(0,8);
+
+    const docObj = {
+      tipo, serie, numero, fecha, fechaEntrega: fecha, hora: horaStr, ruc, proveedor, moneda, formaPago, dias: 1, vendedor: 'ADM',
+      subtotal, neto, igv, percepcion, flete: 0, total, totalUnidades,
+      items: JSON.parse(JSON.stringify(compraDraftItems))
+    };
+
+    if (editingCompraIndex !== null) {
+      const oldDoc = (tipo === 'GE' ? db.guiasCompra : db.compras)[editingCompraIndex];
+      if (oldDoc) {
+        oldDoc.items.forEach(oldIt => {
+          const p = db.productos.find(x => x.codigo === oldIt.codigo);
+          if (p) p.stock = Math.max(0, Number(p.stock) - Number(oldIt.cant));
+        });
       }
+      if (tipo === 'GE') db.guiasCompra[editingCompraIndex] = docObj;
+      else db.compras[editingCompraIndex] = docObj;
+    } else {
+      if (tipo === 'GE') db.guiasCompra.push(docObj);
+      else db.compras.push(docObj);
+    }
 
-      function limpiar() {
-        document.querySelectorAll('input').forEach(i => i.value = '');
-        calcularTodo();
+    compraDraftItems.forEach(it => {
+      const prod = db.productos.find(p => p.codigo === it.codigo);
+      if (prod) {
+        prod.costoAnt2 = prod.costoAnt1 || prod.costo;
+        prod.costoAnt1 = prod.costoUlt || prod.costo;
+        prod.stock = (Number(prod.stock) || 0) + Number(it.cant);
+        prod.costo = it.precio;
+        prod.costoUlt = it.precio;
+        prod.costoProm = it.precio;
+        db.kardex.push({
+          fecha, hora: horaStr,
+          tipo, doc: `${tipo} ${serie}-${numero}`,
+          codigo: prod.codigo, producto: prod.descrip,
+          entrada: it.cant, salida: 0, saldo: prod.stock, costo: it.precio
+        });
       }
+    });
 
-      function registrar() {
-        var efectivo = getVal('b1') + getVal('b2') + getVal('b3') + getVal('b4');
-        var recibo = getVal('p1') + getVal('p2') + getVal('p3') + getVal('p4') + getVal('p5') + getVal('p6') + getVal('p7') + getVal('p8');
-        var retiro = getVal('retiro');
-        var esFaltante = document.getElementById('textoFinal').innerText === "FALTANTE";
-        var esPorCobrar = document.getElementById('textoFinal').innerText === "POR COBRAR";
+    saveDB();
+    showVfpNotice('Proceso Grabado', () => {
+      closeModal();
+      nav(tipo === 'GE' ? 'guias_compra' : 'compras');
+    });
+  });
+}
 
-        if (esFaltante || esPorCobrar) { alert("No se puede guardar: Operación incompleta."); return; }
+/* ============================================================================
+   13. INVENTARIO, RECALCULO SALDOS, KARDEXSUNAT Y TIENDA
+   ============================================================================ */
+function renderInventarioTreeWindow(ws) {
+  ws.innerHTML = `
+    <div class="vfp-window">
+      <div class="vfp-win-title">
+        <span>Inventario</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="nav('dashboard')">✕</button>
+      </div>
 
-        var btn = document.getElementById('btnRegistrar');
-        btn.innerText = "Guardando..."; btn.disabled = true;
+      <div style="flex:1; display:grid; grid-template-columns: 245px 1fr; gap:6px; padding:6px; background:var(--aqua-bg); overflow:hidden;">
+        <div class="vfp-in" style="padding:6px; overflow-y:auto;">
+          <div style="font-weight:bold; margin-bottom:4px;">📁 Tablas</div>
+          <div style="padding-left:16px; display:flex; flex-direction:column; gap:3px;">
+            <div style="cursor:pointer;" onclick="openFacturaCompraModal('GE', 'NEW')">📄 Guias de Ingreso</div>
+            <div style="cursor:pointer;" onclick="nav('tienda')">📄 Guias de Salida</div>
+            <div style="cursor:pointer;" onclick="showVfpNotice('Transferencia entre almacenes')">📄 Transferencia</div>
+            <div style="cursor:pointer;" onclick="showVfpNotice('Saldo Inicial')">📄 SaldoInicial</div>
+            <div style="cursor:pointer;" onclick="showVfpNotice('Conteo Fisico')">📄 ConteoFisico</div>
+            <div style="cursor:pointer;" onclick="nav('productos')">📄 Stock</div>
+            <div style="cursor:pointer; font-weight:bold; color:#003399;" onclick="openRecalculosModal()">⚙️ Recalculo Saldos</div>
+          </div>
 
-        setTimeout(function() {
-          document.getElementById('notificacion').style.display = 'block';
-          setTimeout(function() { document.getElementById('notificacion').style.display = 'none'; }, 2000);
-          limpiar(); btn.innerText = "✔ GUARDAR"; btn.disabled = false;
-        }, 1000); 
-      }
-    </script>
-  </body>
+          <div style="font-weight:bold; margin:8px 0 4px 0;">📁 Reportes</div>
+          <div style="padding-left:16px; display:flex; flex-direction:column; gap:3px;">
+            <div style="cursor:pointer;" onclick="nav('inventario')">📄 Saldo Actual</div>
+            <div style="cursor:pointer;" onclick="openKardexSunatModal()">📄 Kardex Fisico</div>
+            <div style="cursor:pointer;" onclick="openKardexSunatModal()">📄 Kardex Valorizado</div>
+            <div style="cursor:pointer;" onclick="nav('inventario')">📄 StockValorizado</div>
+            <div style="cursor:pointer; font-weight:bold;" onclick="openKardexSunatModal()">📄 KardexSunat1</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
+          <div class="vfp-toolbar">
+            <button class="vfp-tbtn" onclick="openRecalculosModal()"><span class="ico">⚙️</span>Recalculo</button>
+            <button class="vfp-tbtn" onclick="openKardexSunatModal()"><span class="ico">📊</span>KardexSunat</button>
+            <button class="vfp-tbtn" onclick="nav('dashboard')"><span class="ico">🚪</span>Salir</button>
+          </div>
+          <div class="vfp-grid-box" style="flex:1;">
+            <table class="vfp-grid">
+              <thead><tr><th>Producto</th><th>Descripción</th><th>Familia</th><th>Und</th><th>Costo</th><th>Pvta</th><th>Saldo Actual</th><th>Valorizado S/</th></tr></thead>
+              <tbody>
+                ${db.productos.map(p => `
+                  <tr>
+                    <td>${p.codigo}</td>
+                    <td>${p.descrip}</td>
+                    <td>${p.familia}</td>
+                    <td>${p.unidad}</td>
+                    <td style="text-align:right;">${Number(p.costo).toFixed(3)}</td>
+                    <td style="text-align:right;">${Number(p.pvta).toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:bold;">${p.stock}</td>
+                    <td style="text-align:right;">${(p.stock * p.costo).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openRecalculosModal() {
+  const hoy = new Date().toISOString().slice(0,10);
+  openModal('Recalculos', `
+    <div style="width:520px; max-width:95vw;">
+      <div class="vfp-toolbar" style="margin:-5px -5px 8px -5px;">
+        <button class="vfp-tbtn" onclick="ejecutarRecalculoSaldos()"><span class="ico">⚙️</span>Procesar</button>
+        <button class="vfp-tbtn" onclick="closeModal()"><span class="ico">🚪</span>Salir</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 195px; gap:10px; align-items:start;">
+        <div style="display:grid; grid-template-columns: 95px 1fr; gap:4px; align-items:center;">
+          <label>Local</label><input type="text" class="ro" readonly value="01|LOCAL 01">
+          <label>Almacen</label><input type="text" class="ro" readonly value="01|PRINCIPAL">
+          <label>Familia</label><input type="text" value="%">
+          <label>Producto</label><input type="text" value="%">
+          <label>FechaInv.Inicial</label><input type="date" value="2021-01-01">
+          <label>Fecha Final</label><input type="date" value="${hoy}">
+          <label>Estado Proceso</label><input type="text" id="rec-estado" class="ro" readonly value="0" style="font-weight:bold; color:#003399;">
+        </div>
+        <div class="vfp-out" style="padding:8px; background:#ECE9D8; font-size:10.5px; line-height:1.35;">
+          Solo se recalcula Saldos. Para Costear se realiza por kardex, debe hacer click en actualiza costo.
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function ejecutarRecalculoSaldos() {
+  db.productos.forEach(p => {
+    const movs = db.kardex.filter(k => k.codigo === p.codigo);
+    if (movs.length > 0) {
+      let s = 0;
+      movs.forEach(m => { s += (Number(m.entrada) || 0) - (Number(m.salida) || 0); m.saldo = s; });
+      p.stock = s;
+    }
+  });
+  saveDB();
+  const est = document.getElementById('rec-estado');
+  if (est) est.value = `${db.productos.length} / ${db.productos.length} - COMPLETADO`;
+  showVfpNotice('Proceso Grabado: Saldos recalculados correctamente.');
+}
+
+function openKardexSunatModal() {
+  const hoy = new Date().toISOString().slice(0,10);
+  openModal('KARDEX', `
+    <div style="width:740px; max-width:96vw;">
+      <div class="vfp-toolbar" style="margin:-5px -5px 6px -5px;">
+        <button class="vfp-tbtn" onclick="filterKardexModal()"><span class="ico">⚙️</span>Procesar</button>
+        <button class="vfp-tbtn" onclick="closeModal()"><span class="ico">🚪</span>Salir</button>
+      </div>
+      <div style="display:grid; grid-template-columns: 82px 130px 24px 85px 1fr; gap:3px; align-items:center; margin-bottom:6px;">
+        <label>Codigo</label>
+        <input type="text" id="kx-cod" value="" data-f1="openConsultaModal('PRODUCTO','kx-cod','kx-desc')">
+        <button class="f1-btn" onclick="openConsultaModal('PRODUCTO','kx-cod','kx-desc')">F1</button>
+        <label>Fecha Inicio</label><input type="date" value="2021-01-01">
+        <label>Codigo Barras</label><input type="text" value="" style="grid-column: span 2;">
+        <label>Fecha Final</label><input type="date" value="${hoy}">
+        <label>Descripcion</label><input type="text" id="kx-desc" value="" style="grid-column: span 2;">
+        <label>Local</label><input type="text" class="ro" readonly value="01|LOCAL 01">
+        <label>Familia</label><input type="text" value="%" style="grid-column: span 2;">
+        <label>Almacen</label><input type="text" class="ro" readonly value="01|PRINCIPAL">
+      </div>
+      <div class="vfp-grid-box" style="height:240px;">
+        <table class="vfp-grid">
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Documento</th><th>Codigo</th><th>Producto</th><th>Entrada</th><th>Salida</th><th>Saldo</th><th>Costo</th></tr></thead>
+          <tbody id="kx-tbody">
+            ${db.kardex.map(k => `
+              <tr>
+                <td>${k.fecha}</td><td>${k.hora}</td><td>${k.tipo}</td><td>${k.doc}</td><td>${k.codigo}</td><td>${k.producto}</td>
+                <td style="text-align:right; color:green;">${k.entrada || 0}</td>
+                <td style="text-align:right; color:red;">${k.salida || 0}</td>
+                <td style="text-align:right; font-weight:bold;">${k.saldo}</td>
+                <td style="text-align:right;">${Number(k.costo).toFixed(3)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+function filterKardexModal() {
+  const cod = document.getElementById('kx-cod').value.trim().toUpperCase();
+  const rows = cod ? db.kardex.filter(k => k.codigo === cod) : db.kardex;
+  const tbody = document.getElementById('kx-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(k => `
+    <tr>
+      <td>${k.fecha}</td><td>${k.hora}</td><td>${k.tipo}</td><td>${k.doc}</td><td>${k.codigo}</td><td>${k.producto}</td>
+      <td style="text-align:right; color:green;">${k.entrada || 0}</td>
+      <td style="text-align:right; color:red;">${k.salida || 0}</td>
+      <td style="text-align:right; font-weight:bold;">${k.saldo}</td>
+      <td style="text-align:right;">${Number(k.costo).toFixed(3)}</td>
+    </tr>
+  `).join('');
+}
+
+let posCart = [];
+let posFamSel = 'ABARRO';
+
+function renderTiendaWindow(ws) {
+  const totalS = posCart.reduce((s,i)=>s+(i.cant*i.pvta), 0);
+  const prodsFam = db.productos.filter(p => p.familia === posFamSel);
+
+  ws.innerHTML = `
+    <div class="vfp-window">
+      <div class="vfp-win-title">
+        <span>PRINCIPAL - Caja: 01 | Turno: 1 | Cajero: IDE</span>
+        <button class="vfp-btn" style="padding:0 5px;" onclick="nav('dashboard')">✕</button>
+      </div>
+      <div style="flex:1; display:grid; grid-template-columns: 390px 1fr; gap:6px; padding:6px; background:#ECE9D8; overflow:hidden;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="vfp-grid-box" style="height:200px;">
+            <table class="vfp-grid">
+              <thead><tr><th>Prod</th><th>Descripcion</th><th>Und</th><th>Cant</th><th>Precio</th><th>Total</th></tr></thead>
+              <tbody>
+                ${posCart.map(it => `
+                  <tr class="active-row">
+                    <td>${it.codigo}</td><td>${it.desCorta}</td><td>${it.unidad}</td>
+                    <td style="text-align:right;">${it.cant}</td>
+                    <td style="text-align:right;">${Number(it.pvta).toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:bold;">${(it.cant*it.pvta).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="lcd-box">
+            <div class="lcd-line"><span style="background:#D80000; color:#FFF; padding:1px 6px; font-weight:bold;">S/.</span><span class="lcd-num">${totalS.toFixed(2)}</span></div>
+            <div class="lcd-line"><span style="background:#00A000; color:#FFF; padding:1px 6px; font-weight:bold;">US$</span><span class="lcd-num" style="font-size:16px;">${(totalS/3.65).toFixed(2)}</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
+            <button class="vfp-btn" style="height:36px; background:#00D800; font-weight:bold;" onclick="procesarVentaTienda('BV')">💵 Efectivo (Boleta)</button>
+            <button class="vfp-btn" style="height:36px; background:#1E90FF; color:#FFF; font-weight:bold;" onclick="procesarVentaTienda('FC')">💳 Visa / Factura</button>
+            <button class="vfp-btn" style="height:30px;" onclick="posCart=[]; renderTiendaWindow(document.getElementById('workspace'));">Limpia Pedido</button>
+            <button class="vfp-btn" style="height:30px;" onclick="nav('dashboard')">Sale</button>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
+          <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:3px;">
+            ${db.familias.slice(0, 18).map(f => `
+              <button class="pos-fam-btn ${f.familia===posFamSel?'active':''}" onclick="posFamSel='${f.familia}'; renderTiendaWindow(document.getElementById('workspace'));">${f.descripcio}</button>
+            `).join('')}
+          </div>
+          <div style="flex:1; display:grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 46px; gap:4px; background:#FFF; border:1px inset #808080; padding:4px; overflow-y:auto;">
+            ${prodsFam.map(p => `
+              <button class="pos-prod-btn" onclick="agregarItemTienda('${p.codigo}')">
+                <span>${p.desCorta}</span>
+                <span style="color:#003399;">S/ ${Number(p.pvta).toFixed(2)} (${p.stock})</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function agregarItemTienda(cod) {
+  const p = db.productos.find(x => x.codigo === cod);
+  if (!p) return;
+  const ex = posCart.find(i => i.codigo === cod);
+  if (ex) ex.cant += 1;
+  else posCart.push({ codigo: p.codigo, descrip: p.descrip, desCorta: p.desCorta, unidad: p.unidad, cant: 1, pvta: p.pvta });
+  renderTiendaWindow(document.getElementById('workspace'));
+}
+
+function procesarVentaTienda(tipo) {
+  if (posCart.length === 0) return;
+  const total = posCart.reduce((s,i)=>s+(i.cant*i.pvta), 0);
+  const fecha = new Date().toISOString().slice(0,10);
+  const hora = new Date().toTimeString().slice(0,8);
+  const num = String(db.ventas.length + 1).padStart(7, '0');
+
+  posCart.forEach(it => {
+    const p = db.productos.find(x => x.codigo === it.codigo);
+    if (p) {
+      p.stock = Math.max(0, Number(p.stock) - Number(it.cant));
+      db.kardex.push({ fecha, hora, tipo, doc: `${tipo} 001-${num}`, codigo: p.codigo, producto: p.descrip, entrada: 0, salida: it.cant, saldo: p.stock, costo: p.costo });
+    }
+  });
+
+  db.ventas.push({ tipo, numero: `001-${num}`, fecha, hora, total, formaPago: tipo==='FC'?'VISA':'EFECTIVO' });
+  posCart = [];
+  saveDB();
+  showVfpNotice(`Proceso Grabado (${tipo} 001-${num} - Total S/ ${total.toFixed(2)})`, () => renderTiendaWindow(document.getElementById('workspace')));
+}
+
+function renderVentasWindow(ws) {
+  ws.innerHTML = `
+    <div class="vfp-window">
+      <div class="vfp-win-title"><span>Registro de Ventas</span><button class="vfp-btn" style="padding:0 5px;" onclick="nav('dashboard')">✕</button></div>
+      <div class="vfp-toolbar">
+        <button class="vfp-tbtn" onclick="nav('tienda')"><span class="ico">🛒</span>Tienda</button>
+        <button class="vfp-tbtn" onclick="nav('dashboard')"><span class="ico">🚪</span>Salir</button>
+      </div>
+      <div class="vfp-grid-box" style="flex:1; margin:4px;">
+        <table class="vfp-grid">
+          <thead><tr><th>Tipo</th><th>Numero</th><th>Fecha</th><th>Hora</th><th>FormaPago</th><th>Total S/</th></tr></thead>
+          <tbody>
+            ${db.ventas.map(v => `<tr><td>${v.tipo}</td><td>${v.numero}</td><td>${v.fecha}</td><td>${v.hora}</td><td>${v.formaPago}</td><td style="text-align:right;">${v.total.toFixed(2)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openCajaMovModal(tipo) {
+  openModal(`${tipo} DE DINERO`, `
+    <div style="width:340px;">
+      <div style="display:grid; grid-template-columns:90px 1fr; gap:4px; align-items:center;">
+        <span>Observacion</span><input type="text" id="cm-obs" class="req">
+        <span>Monto S/</span><input type="number" step="0.01" id="cm-monto" class="req" value="50.00">
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:6px;">
+        <button class="vfp-btn" onclick="db.movimientosDinero.push({tipo:'${tipo}', obs:document.getElementById('cm-obs').value, monto:parseFloat(document.getElementById('cm-monto').value)||0}); saveDB(); closeModal(); showVfpNotice('Proceso Grabado');">Grabar</button>
+        <button class="vfp-btn" onclick="closeModal()">Salir</button>
+      </div>
+    </div>
+  `);
+}
+
+function openModal(title, html) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-mask').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-mask').classList.remove('open');
+  closeSubModal();
+}
+
+nav('login');
+</script>
+</body>
 </html>
