@@ -1,3 +1,8 @@
+
+
+
+Ícono de HTML
+index
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -822,9 +827,30 @@ const DEFAULT_STATE = {
       igv: 18, percep: 2, stock: 60, stkMin: 12, stkMax: 240, lote: '01', color: 'NEGRO',
       pesoKgr: '0.473', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
       activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
+    },
+    {
+      codigo: '3', barras: '7750182000035', descrip: 'INCA KOLA', desCorta: 'INCA KOLA',
+      presentac: '', familia: 'BEBIDA', subfamilia: 'GASEOS', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100070970 SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA',
+      unidad: 'UND', factor: 1, costo: 0.00, costoUlt: 0.00, costoProm: 0.00, costoInicial: 0.00,
+      costoAnt1: 0.00, costoAnt2: 0.00, pvta: 2.00,
+      igv: 18, percep: 0, stock: 0, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
+      pesoKgr: '0.500', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '30/04/2021'
+    },
+    {
+      codigo: '22', barras: '7750106000221', descrip: 'AZUCAR RUBIA', desCorta: 'AZUCAR RUBIA',
+      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
+      proveedor: '20100070970 SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA',
+      unidad: 'UND', factor: 1, costo: 0.00, costoUlt: 0.00, costoProm: 0.00, costoInicial: 0.00,
+      costoAnt1: 0.00, costoAnt2: 0.00, pvta: 3.50,
+      igv: 18, percep: 0, stock: 0, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
+      pesoKgr: '1.000', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
+      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '30/04/2021'
     }
   ],
   socios: [
+    { codigo: '20100070970', tipoDoc: 'J', nombre: 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA', dir: 'CAL. MORELLI 181 P-2 - SA', telefono: '', esProv: true, esCli: false },
     { codigo: '20100113610', tipoDoc: 'J', nombre: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.', dir: 'AV. NICOLAS AYLLON 3986 - ATE', telefono: '', esProv: true, esCli: false },
     { codigo: '20448218938', tipoDoc: 'J', nombre: 'MT DISTRIBUCIONES S.A.', dir: 'JR. COMERCIO 410', telefono: '', esProv: true, esCli: false },
     { codigo: '72508222', tipoDoc: 'O', nombre: 'ABASTO NMARKET', dir: 'JR. COMERCIO 120', telefono: '', esProv: true, esCli: true },
@@ -885,7 +911,19 @@ function loadDB() {
     localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(DEFAULT_STATE));
     return JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
-  return JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+  // Asegura productos demo del video (3 INCA KOLA y 22 AZUCAR RUBIA) sin borrar datos guardados
+  ['3', '22'].forEach(cod => {
+    if (!parsed.productos.some(p => p.codigo === cod)) {
+      const defP = DEFAULT_STATE.productos.find(p => p.codigo === cod);
+      if (defP) parsed.productos.push(JSON.parse(JSON.stringify(defP)));
+    }
+  });
+  if (!parsed.socios.some(s => s.codigo === '20100070970')) {
+    const defS = DEFAULT_STATE.socios.find(s => s.codigo === '20100070970');
+    if (defS) parsed.socios.unshift(JSON.parse(JSON.stringify(defS)));
+  }
+  return parsed;
 }
 function saveDB() {
   localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(db));
@@ -2147,30 +2185,35 @@ function selectSocioForCompra() {
 /* ============================================================================
    10. VENTANA DE CONSULTA 'F1'
    ============================================================================ */
-function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, customCallback = null) {
+function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, customCallback = null, initialQuery = '') {
   let rows = [];
   let headers = [];
 
   if (tipo === 'FAMILIA') {
     headers = ['Descripcio', 'Familia'];
-    rows = db.familias.map(f => ({ col1: f.descripcio, col2: f.familia, raw: f }));
+    rows = db.familias.map(f => ({ cols: [f.descripcio, f.familia], raw: f, code: f.familia, desc: f.descripcio }));
   } else if (tipo === 'PROVEEDOR') {
     headers = ['Nombre', 'Codigo', 'Direccion'];
-    rows = db.socios.map(p => ({ col1: p.nombre, col2: p.codigo, col3: p.dir, raw: p }));
+    rows = db.socios.map(p => ({ cols: [p.nombre, p.codigo, p.dir || ''], raw: p, code: p.codigo, desc: p.nombre }));
   } else if (tipo === 'TIPODOC') {
     headers = ['Descrip', 'Tipo'];
-    rows = db.tiposDocCompra.map(t => ({ col1: t.descrip, col2: t.tipo, raw: t }));
+    rows = db.tiposDocCompra.map(t => ({ cols: [t.descrip, t.tipo], raw: t, code: t.tipo, desc: t.descrip }));
   } else if (tipo === 'FORMAPAGO') {
     headers = ['Descrip', 'Fpago'];
-    rows = db.formasPago.map(fp => ({ col1: fp.descrip, col2: fp.pago, raw: fp }));
+    rows = db.formasPago.map(fp => ({ cols: [fp.descrip, fp.pago], raw: fp, code: fp.pago, desc: fp.descrip }));
   } else if (tipo === 'PRODUCTO') {
-    headers = ['Producto.Descripcio', 'Codigo', 'Und', 'Factor', 'P', 'Mon', 'Fam', 'Igv'];
+    headers = ['Descripcio', 'Producto', 'Marca', 'Und', 'F', 'Precio', 'M', 'Fam', 'Subfam', 'Barras', 'Igv'];
     rows = db.productos.map(pr => ({
-      col1: pr.descrip, col2: pr.codigo, col3: pr.unidad, col4: pr.factor, col5: Number(pr.pvta).toFixed(2), col6: 'S', col7: pr.familia, col8: pr.igv, raw: pr
+      cols: [
+        pr.descrip, pr.codigo, pr.marca || '', pr.unidad, pr.factor || 1,
+        Number(pr.costo || 0).toFixed(2), 'S', pr.familia || '', pr.subfamilia || '', pr.barras || '', pr.igv || 18
+      ],
+      raw: pr, code: pr.codigo, desc: pr.descrip
     }));
   }
 
   window._consRows = rows;
+  window._consTipo = tipo;
   window._consSelIdx = 0;
   window._consPick = (idx) => {
     const picked = window._consRows[idx];
@@ -2179,10 +2222,10 @@ function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, custo
       customCallback(picked.raw);
       return;
     }
-    if (targetCodeId && document.getElementById(targetCodeId)) document.getElementById(targetCodeId).value = picked.col2;
-    if (targetDescId && document.getElementById(targetDescId)) document.getElementById(targetDescId).value = picked.col1;
+    if (targetCodeId && document.getElementById(targetCodeId)) document.getElementById(targetCodeId).value = picked.code;
+    if (targetDescId && document.getElementById(targetDescId)) document.getElementById(targetDescId).value = picked.desc;
     closeSubModal();
-    if (tipo === 'FORMAPAGO' && picked.col2 === '1') {
+    if (tipo === 'FORMAPAGO' && picked.code === '1') {
       openDatosAdicionalesPopup();
     }
   };
@@ -2198,24 +2241,71 @@ function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, custo
     sub.classList.add('open');
   }
 
-  const firstProd = tipo === 'PRODUCTO' && rows[0] ? rows[0].raw : null;
+  const isProd = (tipo === 'PRODUCTO');
+  const winTitle = isProd ? 'Consultas' : 'Consulta';
 
   sub.innerHTML = `
-    <div class="modal-box" style="width:650px; max-width:96vw;">
+    <div class="modal-box" style="width:${isProd ? '760px' : '640px'}; max-width:96vw;">
       <div class="vfp-win-title">
-        <span>Consulta</span>
+        <span>${winTitle}</span>
         <button class="vfp-btn" style="padding:0 5px;" onclick="closeSubModal()">✕</button>
       </div>
-      <div class="modal-content">
-        <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
-          <select style="width:140px;"><option>${headers[0]}</option></select>
-          <select style="width:45px;"><option>%</option></select>
-          <input type="text" id="sub-cons-filter" style="flex:1;" onkeyup="filterSubConsulta(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window._consPick(window._consSelIdx);}" autofocus>
-          <button class="vfp-btn" style="width:75px;" onclick="filterSubConsulta(document.getElementById('sub-cons-filter').value)">Filtrar</button>
-          <button class="vfp-btn" style="width:85px; font-weight:bold;" onclick="window._consPick(window._consSelIdx)">Seleccionar</button>
-        </div>
+      <div class="modal-content" style="background:var(--win-face); padding:6px;">
+        ${isProd ? `
+          <!-- Barra superior exacta de Consultas de Productos en el video (00:11 / 00:24) -->
+          <div style="display:grid; grid-template-columns: 145px 110px 62px 70px 70px 70px 1fr; gap:4px; align-items:end; margin-bottom:6px; font-size:10px;">
+            <div>
+              <select id="sub-cons-field" style="width:100%;" onchange="filterSubConsulta()">
+                <option value="DESCRIP">Producto.Descripcio</option>
+                <option value="CODIGO">Producto.Codigo</option>
+                <option value="BARRAS">Producto.Barras</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" id="sub-cons-filter" value="${(initialQuery || '').replace(/"/g, '&quot;')}" style="width:100%;"
+                     oninput="filterSubConsulta()"
+                     onkeydown="handleConsultaKeydown(event)" autofocus>
+            </div>
+            <div>
+              <button class="vfp-btn" style="width:100%; height:20px;" onclick="filterSubConsulta()">Filtrar</button>
+            </div>
+            <div>
+              <div style="font-size:9.5px;">Familia</div>
+              <select id="sub-cons-fam" style="width:100%;" onchange="filterSubConsulta()">
+                <option value=""></option>
+                ${db.familias.map(f => `<option value="${f.familia}">${f.familia}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <div style="font-size:9.5px;">Categoria</div>
+              <select id="sub-cons-cat" style="width:100%;" onchange="filterSubConsulta()">
+                <option value=""></option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:9.5px;">Marca</div>
+              <select id="sub-cons-marca" style="width:100%;" onchange="filterSubConsulta()">
+                <option value=""></option>
+              </select>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+              <label style="display:flex; align-items:center; gap:3px; font-size:9.5px;"><input type="checkbox" style="height:12px;"> Habilita Promedio</label>
+              <button class="vfp-btn" style="width:92px; height:20px;" onclick="window._consPick(window._consSelIdx)">Seleccionar</button>
+            </div>
+          </div>
+        ` : `
+          <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+            <select style="width:140px;"><option>${headers[0]}</option></select>
+            <select style="width:45px;"><option>%</option></select>
+            <input type="text" id="sub-cons-filter" value="${(initialQuery || '').replace(/"/g, '&quot;')}" style="flex:1;"
+                   oninput="filterSubConsulta()"
+                   onkeydown="handleConsultaKeydown(event)" autofocus>
+            <button class="vfp-btn" style="width:75px;" onclick="filterSubConsulta()">Filtrar</button>
+            <button class="vfp-btn" style="width:85px; font-weight:bold;" onclick="window._consPick(window._consSelIdx)">Seleccionar</button>
+          </div>
+        `}
 
-        <div class="vfp-grid-box" style="height:245px;">
+        <div class="vfp-grid-box" style="height:260px;">
           <table class="vfp-grid" id="sub-cons-table">
             <thead>
               <tr>
@@ -2225,31 +2315,23 @@ function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, custo
             </thead>
             <tbody>
               ${rows.map((r, i) => `
-                <tr class="${i===0?'active-row':''}" onclick="selectSubConsultaRow(${i}, this)" ondblclick="window._consPick(${i})">
-                  <td>${i===0?'▶':''}</td>
-                  <td>${r.col1}</td>
-                  <td>${r.col2}</td>
-                  ${r.col3 !== undefined ? `<td>${r.col3}</td>` : ''}
-                  ${r.col4 !== undefined ? `<td>${r.col4}</td>` : ''}
-                  ${r.col5 !== undefined ? `<td>${r.col5}</td>` : ''}
-                  ${r.col6 !== undefined ? `<td>${r.col6}</td>` : ''}
-                  ${r.col7 !== undefined ? `<td>${r.col7}</td>` : ''}
-                  ${r.col8 !== undefined ? `<td>${r.col8}</td>` : ''}
+                <tr data-idx="${i}" class="${i===0?'active-row':''}" onclick="selectSubConsultaRow(${i}, this)" ondblclick="window._consPick(${i})">
+                  <td style="background:#D4D0C8; color:#000; text-align:center;">${i===0?'▶':''}</td>
+                  ${r.cols.map(c => `<td>${c}</td>`).join('')}
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
 
-        ${tipo === 'PRODUCTO' ? `
-          <div class="vfp-grid-box" style="height:55px; margin-top:4px;">
+        ${isProd ? `
+          <div class="vfp-grid-box" style="height:56px; margin-top:4px;">
             <table class="vfp-grid">
-              <thead><tr><th>Unidad1</th><th>Pventa1</th><th>Unidad2</th><th>Pventa2</th><th>Unidad3</th><th>Pventa3</th><th>Unidad4</th><th>Pventa4</th></tr></thead>
+              <thead><tr><th style="width:18px;"></th><th>Unidad1</th><th>Pventa1</th><th>Unidad2</th><th>Pventa2</th><th>Unidad3</th><th>Pventa3</th><th>Unidad4</th><th>Pventa4</th></tr></thead>
               <tbody id="cons-prod-prices">
                 <tr>
-                  <td>${firstProd ? firstProd.unidad : 'UND'}</td>
-                  <td>${firstProd ? Number(firstProd.pvta).toFixed(2) : '0.00'}</td>
-                  <td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td>
+                  <td style="background:#D4D0C8; text-align:center;">▶</td>
+                  <td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td>
                 </tr>
               </tbody>
             </table>
@@ -2258,7 +2340,44 @@ function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, custo
       </div>
     </div>
   `;
-  setTimeout(() => document.getElementById('sub-cons-filter')?.focus(), 30);
+
+  filterSubConsulta();
+  setTimeout(() => {
+    const inp = document.getElementById('sub-cons-filter');
+    if (inp) {
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+  }, 30);
+}
+
+function handleConsultaKeydown(e) {
+  const visibleRows = Array.from(document.querySelectorAll('#sub-cons-table tbody tr'))
+    .filter(tr => tr.style.display !== 'none');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (visibleRows.length === 0) return;
+    const curPos = visibleRows.findIndex(tr => Number(tr.dataset.idx) === window._consSelIdx);
+    const next = visibleRows[Math.min(visibleRows.length - 1, curPos + 1)];
+    if (next) {
+      selectSubConsultaRow(Number(next.dataset.idx), next);
+      next.scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (visibleRows.length === 0) return;
+    const curPos = visibleRows.findIndex(tr => Number(tr.dataset.idx) === window._consSelIdx);
+    const prev = visibleRows[Math.max(0, curPos - 1)];
+    if (prev) {
+      selectSubConsultaRow(Number(prev.dataset.idx), prev);
+      prev.scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (visibleRows.length === 0) return;
+    const activeVisible = visibleRows.find(tr => Number(tr.dataset.idx) === window._consSelIdx) || visibleRows[0];
+    if (activeVisible) window._consPick(Number(activeVisible.dataset.idx));
+  }
 }
 
 function selectSubConsultaRow(idx, tr) {
@@ -2267,20 +2386,50 @@ function selectSubConsultaRow(idx, tr) {
     r.classList.remove('active-row');
     r.firstElementChild.textContent = '';
   });
-  tr.classList.add('active-row');
-  tr.firstElementChild.textContent = '▶';
+  if (tr) {
+    tr.classList.add('active-row');
+    tr.firstElementChild.textContent = '▶';
+  }
   const picked = window._consRows[idx];
   const priceBody = document.getElementById('cons-prod-prices');
   if (priceBody && picked && picked.raw) {
-    priceBody.innerHTML = `<tr><td>${picked.raw.unidad}</td><td>${Number(picked.raw.pvta).toFixed(2)}</td><td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td></tr>`;
+    priceBody.innerHTML = `<tr><td style="background:#D4D0C8; text-align:center;">▶</td><td>${picked.raw.unidad}</td><td>${Number(picked.raw.pvta).toFixed(2)}</td><td></td><td>0.00</td><td></td><td>0.00</td><td></td><td>0.00</td></tr>`;
   }
 }
-function filterSubConsulta(q) {
-  q = q.toUpperCase();
+
+function filterSubConsulta() {
+  const q = (document.getElementById('sub-cons-filter')?.value || '').trim().toUpperCase();
+  const famFlt = (document.getElementById('sub-cons-fam')?.value || '').trim().toUpperCase();
+  const fieldFlt = (document.getElementById('sub-cons-field')?.value || 'DESCRIP');
+  let firstVisibleTr = null;
+
   document.querySelectorAll('#sub-cons-table tbody tr').forEach(tr => {
-    tr.style.display = tr.textContent.toUpperCase().includes(q) ? '' : 'none';
+    const idx = Number(tr.dataset.idx);
+    const row = window._consRows[idx];
+    let matchText = true;
+    if (q) {
+      if (window._consTipo === 'PRODUCTO') {
+        if (fieldFlt === 'CODIGO') matchText = (row.raw.codigo || '').toUpperCase().includes(q);
+        else if (fieldFlt === 'BARRAS') matchText = (row.raw.barras || '').toUpperCase().includes(q);
+        else matchText = (row.raw.descrip || '').toUpperCase().includes(q) || (row.raw.codigo || '').toUpperCase().includes(q) || (row.raw.barras || '').toUpperCase().includes(q);
+      } else {
+        matchText = tr.textContent.toUpperCase().includes(q);
+      }
+    }
+    let matchFam = true;
+    if (famFlt && window._consTipo === 'PRODUCTO') {
+      matchFam = (row.raw.familia || '').toUpperCase() === famFlt;
+    }
+    const visible = matchText && matchFam;
+    tr.style.display = visible ? '' : 'none';
+    if (visible && !firstVisibleTr) firstVisibleTr = tr;
   });
+
+  if (firstVisibleTr) {
+    selectSubConsultaRow(Number(firstVisibleTr.dataset.idx), firstVisibleTr);
+  }
 }
+
 function closeSubModal() {
   const sub = document.getElementById('sub-mask');
   if (sub) sub.classList.remove('open');
@@ -2487,6 +2636,7 @@ function borrarCompraSel(esGuia) {
 let compraDraftItems = [];
 let editingCompraIndex = null;
 let currentCompraMode = 'NEW';
+let fcActiveRowIdx = -1;
 
 function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode = null, editIdx = null, esGuiaEdit = false) {
   currentCompraMode = mode;
@@ -2500,29 +2650,32 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
 
   if (existingDoc) {
     compraDraftItems = JSON.parse(JSON.stringify(existingDoc.items));
+    fcActiveRowIdx = compraDraftItems.length > 0 ? 0 : -1;
   } else if (preAddProdCode) {
     const pr = db.productos.find(x => x.codigo === preAddProdCode);
     if (pr && !compraDraftItems.some(i => i.codigo === pr.codigo)) {
       const nowH = new Date().toTimeString().slice(0,7);
       compraDraftItems.push({
         codigo: pr.codigo, descrip: pr.descrip, unidad: pr.unidad, factor: pr.factor || 1,
-        cant: 10, recib: 10, precio: pr.costo || 1.00, desc: 0,
+        cant: 1, recib: 0, precio: pr.costo || 0, desc: 0,
         percPct: pr.percep || (pr.familia === 'CERVEZ' ? 2 : 0), iscPct: 0, igvPct: pr.igv || 18,
         familia: pr.familia, subfamilia: pr.subfamilia || '', marca: pr.marca || '',
         hora: nowH, costoAnt: pr.costoUlt || pr.costo || 0
       });
+      fcActiveRowIdx = compraDraftItems.length - 1;
     }
   } else {
     compraDraftItems = [];
+    fcActiveRowIdx = -1;
   }
 
   const hoy = new Date().toISOString().slice(0,10);
-  const nextNum = existingDoc ? existingDoc.numero : String(102 + db.compras.length).padStart(8, '0');
+  const nextNum = existingDoc ? existingDoc.numero : String(101 + db.compras.length);
   const modeLabel = mode === 'VER' ? 'Ver' : (mode === 'EDIT' ? 'Modifica' : 'Nuevo');
 
   openModal('Factura de Compra', `
     <div style="width:940px; max-width:97vw;">
-      <!-- Barra superior de texto exacta de las capturas 1564-1569 -->
+      <!-- Barra superior de texto exacta de Orión -->
       <div class="vfp-subbar" style="margin:-5px -5px 3px -5px;">
         ${['Grabar','AgruparSaldo','ProductosParaPedido','ConteoFisico','VerMovimiento','CargaSaldoActual','CargaExcellSaldoIni','Recosteo','CargaExcellGuia','Salir'].map(t => `
           <button class="vfp-btn" style="font-size:10px; padding:2px 5px;" ${t==='Grabar' && isVer ? 'disabled' : ''} onclick="${t==='Grabar'?'confirmarGrabarCompra()':(t==='Salir'?'closeModal()':'recalcFacturaCompraTotals()')}">${t}</button>
@@ -2534,14 +2687,14 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
         <div style="display:flex; gap:3px;">
           <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="openFacturaCompraModal('FC', 'NEW')" title="Nuevo">📄</button>
           <button class="vfp-btn" style="height:26px; width:32px;" onclick="window.print()" title="Imprimir">🖨️</button>
-          <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="confirmarGrabarCompra()" title="Grabar">💾</button>
+          <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="confirmarGrabarCompra()" title="Grabar registro">💾</button>
           <button class="vfp-btn" style="height:26px; width:32px;" onclick="closeModal()" title="Salir">🚪</button>
         </div>
         <div style="font-weight:bold; font-size:12px; color:#000;">${modeLabel}</div>
         <div style="width:120px;"></div>
       </div>
 
-      <!-- Cabecera de Factura de Compra exacta (sin solapamientos) -->
+      <!-- Cabecera de Factura de Compra exacta (Sin barra de búsqueda inventada debajo) -->
       <div style="display:grid; grid-template-columns: 52px 150px 64px 104px 54px 55px 82px 55px 68px 1fr; gap:3px 5px; align-items:center; margin-bottom:6px; font-size:10.5px;">
         <label>Tipo</label>
         <div style="display:flex; gap:2px;">
@@ -2557,7 +2710,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
         <span></span><span></span>
 
         <label>Serie</label>
-        <input type="text" id="fc-serie" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.serie : 'FD29'}" style="width:118px;">
+        <input type="text" id="fc-serie" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.serie : '001'}" style="width:118px;">
         <label>F.Entrega</label>
         <input type="date" id="fc-entrega" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.fechaEntrega || existingDoc.fecha : hoy}" style="width:100%;">
         <label>T/Cambio</label>
@@ -2571,7 +2724,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
         <label>Moneda</label>
         <select id="fc-moneda" class="${isVer?'ro':'req'}" ${disAttr} style="width:100%;"><option value="S">S</option><option value="D">D</option></select>
         <label>Vendedor</label>
-        <input type="text" id="fc-vend" class="ro" readonly value="${existingDoc ? existingDoc.vendedor || 'ADM' : 'ADM'}" style="width:100%;">
+        <input type="text" id="fc-vend" class="ro" readonly value="${existingDoc ? existingDoc.vendedor || 'IDE' : 'IDE'}" style="width:100%;">
         <label>Observa</label>
         <input type="text" id="fc-observa" ${roAttr} style="grid-column: span 3; width:100%;" value="">
 
@@ -2600,32 +2753,20 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
         <input type="text" id="fc-dir" ${roAttr} style="grid-column: span 4; width:100%;" value="">
       </div>
 
-      <!-- Barra de búsqueda / digitación de producto (Oculta en modo Ver) -->
-      ${!isVer ? `
-        <div class="vfp-out" style="padding:3px 6px; margin-bottom:4px; display:flex; gap:4px; align-items:center; background:#D4D0C8;">
-          <b>Producto (F1):</b>
-          <input type="text" id="fc-item-search" placeholder="Escribe código/nombre o presiona F1 para Consulta, F7 para crear producto nuevo..." style="flex:1;"
-                 data-f1="buscarProductoParaCompra()"
-                 data-f7="openTablaProductoModal(null, 'NUEVO', true)"
-                 onkeydown="if(event.key==='Enter'){event.preventDefault(); buscarProductoParaCompra();}">
-          <button class="vfp-btn" onclick="buscarProductoParaCompra()">F1 Consulta</button>
-          <button class="vfp-btn" style="background:#FFFF99;" onclick="openTablaProductoModal(null, 'NUEVO', true)">F7 Nuevo Prod</button>
-        </div>
-      ` : ''}
-
-      <!-- Grilla Horizontalmente Deslizable con TODAS las columnas de las capturas 1564 -> 1569 + Panel Derecho -->
+      <!-- Grilla Principal Directa (Exacta al video: la búsqueda se hace directo en la columna Producto de la fila *) -->
       <div style="display:grid; grid-template-columns: 1fr 82px; gap:4px; margin-bottom:5px;">
-        <div class="vfp-grid-box" style="height:185px; overflow-x:auto;">
-          <table class="vfp-grid" style="min-width:1950px;">
+        <div class="vfp-grid-box" style="height:220px; overflow-x:auto;">
+          <table class="vfp-grid" style="min-width:1970px;">
             <thead>
               <tr>
-                <th>Producto</th>
-                <th>Descripcio</th>
+                <th style="width:22px; text-align:center;"></th>
+                <th style="min-width:72px;">Producto</th>
+                <th style="min-width:210px;">Descripcio</th>
                 <th>Und</th>
                 <th>Factor</th>
-                <th>Cant</th>
+                <th style="min-width:56px;">Cant</th>
                 <th>Recib</th>
-                <th>Precio</th>
+                <th style="min-width:60px;">Precio</th>
                 <th>%Desc</th>
                 <th>Total</th>
                 <th>Subt</th>
@@ -2667,31 +2808,32 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
           </table>
         </div>
 
-        <!-- Panel Derecho Exacto (Recalcular, Lista Nro 01, Contador Total Unidades e.g. 378.00, BorrarTodo, Serie, Observa) -->
+        <!-- Panel Derecho Exacto (Recalcular, Lista Nro 01, Contador Total Unidades, BorrarTodo, Serie, Observa) -->
         <div style="display:flex; flex-direction:column; gap:4px;">
           <button class="vfp-btn" style="height:26px;" ${isVer ? 'disabled' : ''} onclick="recalcFacturaCompraTotals()">Recalcular</button>
           <div style="font-size:10px;">Lista Nro</div>
           <select ${disAttr} style="height:19px;"><option>01</option></select>
-          <input type="text" id="fc-total-units-box" class="ro" readonly value="0.00" style="height:22px; font-weight:bold; text-align:right; background:#FFF !important;" title="Suma total de unidades ingresadas">
-          <button class="vfp-btn" style="height:26px;" ${isVer ? 'disabled' : ''} onclick="compraDraftItems=[]; renderFacturaCompraGrid();">BorrarTodo</button>
+          <input type="text" id="fc-total-units-box" class="ro" readonly value="0.00" style="height:22px; font-weight:bold; text-align:right; background:#FFF !important;">
+          <button class="vfp-btn" style="height:26px;" ${isVer ? 'disabled' : ''} onclick="compraDraftItems=[]; fcActiveRowIdx=-1; renderFacturaCompraGrid();">BorrarTodo</button>
           <button class="vfp-btn" style="height:24px;" onclick="showVfpNotice('Serie / Lote: 01')">Serie</button>
           <button class="vfp-btn" style="height:24px;" onclick="openDatosAdicionalesPopup()">Observa</button>
         </div>
       </div>
 
-      <!-- Pie de Totales Exacto de las Capturas (5 bloques limpios con anchos garantizados) -->
+      <!-- Pie de Totales Exacto de Orión (5 bloques ordenados sin solapamientos + indicador SUBIO/BAJO) -->
       <div style="display:grid; grid-template-columns: 120px 175px 175px 165px 185px; gap:8px; align-items:end; font-size:10.5px; padding-top:4px; border-top:1px solid #66AAAA;">
-        <!-- Bloque 0: Contador ítems + Bolsa -->
+        <!-- Bloque 0: Contador ítems + indicador SUBIO/BAJO + Bolsa -->
         <div style="display:grid; grid-template-columns: 42px 68px; gap:3px 4px; align-items:center;">
           <span>Items</span><input type="text" id="fc-items-count" class="ro" readonly value="0" style="width:100%; height:18px; text-align:right;">
+          <span></span><input type="text" id="fc-cost-status" class="ro" readonly value="" style="width:100%; height:18px; text-align:center; font-weight:bold; background:#FFF !important;">
           <span>Bolsa</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
         </div>
 
         <!-- Bloque 1: CostoAnterior, CostoFactura, Diferencia, Otros -->
         <div style="display:grid; grid-template-columns: 78px 86px; gap:3px 4px; align-items:center;">
-          <span>CostoAnterior</span><input type="text" id="fc-cost-ant" class="ro" readonly value="" style="width:100%; height:18px; text-align:right;">
-          <span>CostoFactura</span><input type="text" id="fc-cost-fac" class="ro" readonly value="" style="width:100%; height:18px; text-align:right;">
-          <span>Diferencia</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>CostoAnterior</span><input type="text" id="fc-cost-ant" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>CostoFactura</span><input type="text" id="fc-cost-fac" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>Diferencia</span><input type="text" id="fc-cost-dif" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
           <span>Otros</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
         </div>
 
@@ -2721,7 +2863,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
       </div>
     </div>
   `);
-  renderFacturaCompraGrid();
+  renderFacturaCompraGrid(preAddProdCode ? { type: 'cant', idx: compraDraftItems.length - 1 } : null);
 }
 
 function syncCompraProv() {
@@ -2781,89 +2923,130 @@ function openDatosAdicionalesPopup() {
   `;
 }
 
-function buscarProductoParaCompra() {
-  const q = document.getElementById('fc-item-search').value.trim().toUpperCase();
-  const exact = db.productos.find(p => p.codigo === q || p.barras === q);
-  if (exact) {
-    agregarProductoAFilaCompra(exact);
-    document.getElementById('fc-item-search').value = '';
-    return;
+// Dinámica exacta de Orión en la celda 'Producto' de la fila '*' (Enter / F1 -> código exacto o abre Consultas pre-filtrado)
+function buscarProductoDesdeCelda(forceModal = false) {
+  const inp = document.getElementById('fc-new-prod-cell');
+  const q = (inp ? inp.value : '').trim().toUpperCase();
+
+  if (!forceModal && q) {
+    const exact = db.productos.find(p => p.codigo.toUpperCase() === q || (p.barras && p.barras.toUpperCase() === q));
+    if (exact) {
+      agregarProductoAFilaCompra(exact);
+      return;
+    }
   }
+
   openConsultaModal('PRODUCTO', null, null, (prod) => {
-    agregarProductoAFilaCompra(prod);
     closeSubModal();
-    document.getElementById('fc-item-search').value = '';
-  });
-  if (q) {
-    setTimeout(() => {
-      const fInp = document.getElementById('sub-cons-filter');
-      if (fInp) { fInp.value = q; filterSubConsulta(q); }
-    }, 40);
-  }
+    agregarProductoAFilaCompra(prod);
+  }, q);
 }
 
 function agregarProductoAFilaCompra(prod) {
-  const exist = compraDraftItems.find(i => i.codigo === prod.codigo);
-  if (exist) {
-    exist.cant += 1;
-    exist.recib = exist.cant;
-  } else {
-    const nowH = new Date().toTimeString().slice(0,7);
-    compraDraftItems.push({
-      codigo: prod.codigo,
-      descrip: prod.descrip,
-      unidad: prod.unidad,
-      factor: prod.factor || 1,
-      cant: 12,
-      recib: 12,
-      precio: prod.costo || 1.00,
-      desc: 0,
-      percPct: prod.percep || (prod.familia === 'CERVEZ' ? 2 : 0),
-      iscPct: 0,
-      igvPct: prod.igv || 18,
-      familia: prod.familia,
-      subfamilia: prod.subfamilia || '',
-      marca: prod.marca || '',
-      hora: nowH,
-      costoAnt: prod.costoUlt || prod.costo || 0
-    });
-  }
-  renderFacturaCompraGrid();
+  const nowH = new Date().toTimeString().slice(0,7);
+  const newIdx = compraDraftItems.length;
+  compraDraftItems.push({
+    codigo: prod.codigo,
+    descrip: prod.descrip,
+    unidad: prod.unidad,
+    factor: prod.factor || 1,
+    cant: 1,
+    recib: 0,
+    precio: Number(prod.costo || 0),
+    desc: 0,
+    percPct: prod.percep || (prod.familia === 'CERVEZ' ? 2 : 0),
+    iscPct: 0,
+    igvPct: prod.igv || 18,
+    familia: prod.familia,
+    subfamilia: prod.subfamilia || '',
+    marca: prod.marca || '',
+    hora: nowH,
+    costoAnt: Number(prod.costoUlt || prod.costo || 0)
+  });
+  fcActiveRowIdx = newIdx;
+  // Igual que el video (00:12 / 00:26): tras elegir producto en Consultas, el cursor salta directo a Cant
+  renderFacturaCompraGrid({ type: 'cant', idx: newIdx });
 }
 
-function renderFacturaCompraGrid() {
+function selectCompraGridRow(idx) {
+  fcActiveRowIdx = idx;
+  updateCompraCostAuditFooter();
+}
+
+function removeCompraGridRow(idx) {
+  if (currentCompraMode === 'VER') return;
+  compraDraftItems.splice(idx, 1);
+  fcActiveRowIdx = compraDraftItems.length - 1;
+  renderFacturaCompraGrid({ type: 'newProd' });
+}
+
+function handleCompraCantKey(e, idx) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = parseFloat(e.target.value) || 0;
+    compraDraftItems[idx].cant = val;
+    compraDraftItems[idx].recib = val;
+    fcActiveRowIdx = idx;
+    renderFacturaCompraGrid({ type: 'precio', idx });
+  }
+}
+
+function handleCompraPrecioKey(e, idx) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = parseFloat(e.target.value) || 0;
+    compraDraftItems[idx].precio = val;
+    fcActiveRowIdx = idx;
+    // Igual que el video (00:20 -> 00:22): tras Enter en Precio, el cursor baja a la celda Producto de la siguiente fila *
+    renderFacturaCompraGrid({ type: 'newProd' });
+  }
+}
+
+function renderFacturaCompraGrid(focusTarget = null) {
   const tbody = document.getElementById('fc-grid-tbody');
   if (!tbody) return;
   const isVer = (currentCompraMode === 'VER');
-  const serieDoc = document.getElementById('fc-serie')?.value || 'FD29';
-  const numDoc = document.getElementById('fc-numero')?.value || '00023188';
+  const serieDoc = document.getElementById('fc-serie')?.value || '001';
+  const numDoc = document.getElementById('fc-numero')?.value || '101';
   const tipoDoc = document.getElementById('fc-tipo')?.value || 'FC';
-  const vendDoc = document.getElementById('fc-vend')?.value || 'ADM';
+  const vendDoc = document.getElementById('fc-vend')?.value || 'IDE';
 
-  tbody.innerHTML = compraDraftItems.map((it, idx) => {
+  const itemRowsHtml = compraDraftItems.map((it, idx) => {
     const rowTot = it.cant * it.precio;
     const rowSub = rowTot / (1 + ((it.igvPct || 18) / 100));
     const rowIgv = rowTot - rowSub;
     const rowPerc = rowTot * ((it.percPct || 0) / 100);
+    const isAct = (idx === fcActiveRowIdx);
 
     return `
-      <tr>
+      <tr onclick="selectCompraGridRow(${idx})">
+        <td style="background:#D4D0C8; color:#000; text-align:center; width:22px; cursor:pointer;"
+            title="${isVer ? '' : 'Doble clic para quitar esta fila'}"
+            ondblclick="if(!${isVer}) removeCompraGridRow(${idx})">${isAct ? '▶' : ''}</td>
         <td><b>${it.codigo}</b></td>
         <td><b>${it.descrip}</b></td>
         <td><b>${it.unidad}</b></td>
         <td style="text-align:right;">${it.factor}</td>
         <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
-          ${isVer ? `<b>${it.cant}</b>` : `<input type="number" value="${it.cant}" min="1" style="width:52px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].cant=parseFloat(this.value)||0; compraDraftItems[${idx}].recib=compraDraftItems[${idx}].cant; renderFacturaCompraGrid();">`}
+          ${isVer ? `<b>${it.cant}</b>` : `<input type="number" id="fc-cant-${idx}" value="${it.cant}" min="0" step="any"
+            style="width:54px; height:18px; text-align:right; border:none;"
+            onfocus="selectCompraGridRow(${idx}); this.select();"
+            onkeydown="handleCompraCantKey(event, ${idx})"
+            onchange="compraDraftItems[${idx}].cant=parseFloat(this.value)||0; compraDraftItems[${idx}].recib=compraDraftItems[${idx}].cant; renderFacturaCompraGrid();">`}
         </td>
-        <td style="text-align:right;">${it.recib || it.cant}</td>
+        <td style="text-align:right;">${it.recib}</td>
         <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
-          ${isVer ? `<b>${Number(it.precio).toFixed(3)}</b>` : `<input type="number" step="0.001" value="${it.precio}" style="width:58px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].precio=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
+          ${isVer ? `<b>${Number(it.precio).toFixed(3)}</b>` : `<input type="number" id="fc-precio-${idx}" step="any" value="${it.precio}"
+            style="width:58px; height:18px; text-align:right; border:none;"
+            onfocus="selectCompraGridRow(${idx}); this.select();"
+            onkeydown="handleCompraPrecioKey(event, ${idx})"
+            onchange="compraDraftItems[${idx}].precio=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
         </td>
         <td style="text-align:right;">${it.desc || 0}</td>
-        <td style="text-align:right; font-weight:bold;">${rowTot.toFixed(3)}</td>
+        <td style="text-align:right; font-weight:bold;">${rowTot.toFixed(2)}</td>
         <td style="text-align:right;">${rowSub.toFixed(2)}</td>
         <td style="padding:${isVer?'2px 5px':'0'}; text-align:right;">
-          ${isVer ? (it.percPct || 0) : `<input type="number" step="0.5" value="${it.percPct || 0}" style="width:36px; height:18px; text-align:right;" onchange="compraDraftItems[${idx}].percPct=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
+          ${isVer ? (it.percPct || 0) : `<input type="number" step="0.5" value="${it.percPct || 0}" style="width:36px; height:18px; text-align:right; border:none;" onchange="compraDraftItems[${idx}].percPct=parseFloat(this.value)||0; renderFacturaCompraGrid();">`}
         </td>
         <td style="text-align:right;">${it.iscPct || 0}</td>
         <td style="text-align:right;">${it.igvPct || 18}</td>
@@ -2893,7 +3076,76 @@ function renderFacturaCompraGrid() {
       </tr>
     `;
   }).join('');
+
+  // Fila '*' exacta de Orión al final de la grilla (donde se escribe código o letras del producto y se presiona Enter/F1)
+  const emptyCellsCount = 59; // resto de columnas después de Producto
+  const newRowHtml = `
+    <tr>
+      <td style="background:#D4D0C8; color:#000; text-align:center; font-weight:bold; width:22px;">*</td>
+      <td style="padding:0;">
+        ${isVer ? '' : `<input type="text" id="fc-new-prod-cell"
+          style="width:100%; min-width:70px; height:18px; border:none; background:#FFF; text-transform:uppercase;"
+          data-f1="buscarProductoDesdeCelda(true)"
+          data-f7="openTablaProductoModal(null, 'NUEVO', true)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault(); buscarProductoDesdeCelda(false);}">`}
+      </td>
+      ${'<td></td>'.repeat(emptyCellsCount)}
+    </tr>
+  `;
+
+  tbody.innerHTML = itemRowsHtml + newRowHtml;
   recalcFacturaCompraTotals();
+
+  if (focusTarget && !isVer) {
+    setTimeout(() => {
+      if (focusTarget.type === 'cant') {
+        const el = document.getElementById(`fc-cant-${focusTarget.idx}`);
+        if (el) { el.focus(); el.select(); }
+      } else if (focusTarget.type === 'precio') {
+        const el = document.getElementById(`fc-precio-${focusTarget.idx}`);
+        if (el) { el.focus(); el.select(); }
+      } else if (focusTarget.type === 'newProd') {
+        const el = document.getElementById('fc-new-prod-cell');
+        if (el) el.focus();
+      }
+    }, 20);
+  }
+}
+
+function updateCompraCostAuditFooter() {
+  const it = compraDraftItems[fcActiveRowIdx >= 0 ? fcActiveRowIdx : compraDraftItems.length - 1];
+  const antEl = document.getElementById('fc-cost-ant');
+  const facEl = document.getElementById('fc-cost-fac');
+  const difEl = document.getElementById('fc-cost-dif');
+  const stEl  = document.getElementById('fc-cost-status');
+  if (!antEl || !facEl || !difEl || !stEl) return;
+
+  if (!it) {
+    antEl.value = '0.00';
+    facEl.value = '0.00';
+    difEl.value = '0.00';
+    stEl.value = '';
+    stEl.style.color = '#000';
+    return;
+  }
+
+  const ant = Number(it.costoAnt || 0);
+  const fac = Number(it.precio || 0);
+  const dif = fac - ant;
+  antEl.value = ant.toFixed(2);
+  facEl.value = fac.toFixed(2);
+  difEl.value = dif.toFixed(2);
+
+  if (fac > 0 && dif > 0.0001) {
+    stEl.value = 'SUBIO';
+    stEl.style.color = '#D80000';
+  } else if (fac > 0 && dif < -0.0001) {
+    stEl.value = 'BAJO';
+    stEl.style.color = '#008000';
+  } else {
+    stEl.value = '';
+    stEl.style.color = '#000';
+  }
 }
 
 function recalcFacturaCompraTotals() {
@@ -2923,6 +3175,7 @@ function recalcFacturaCompraTotals() {
   document.getElementById('fc-impuesto').value = impuesto.toFixed(2);
   document.getElementById('fc-percepcion').value = percepcion.toFixed(2);
   document.getElementById('fc-total').value = totalGeneral.toFixed(2);
+  updateCompraCostAuditFooter();
 }
 
 function confirmarGrabarCompra() {
@@ -2934,8 +3187,8 @@ function confirmarGrabarCompra() {
 
   showVfpConfirm('Desea Grabar', () => {
     const tipo = document.getElementById('fc-tipo').value.trim().toUpperCase() || 'FC';
-    const serie = document.getElementById('fc-serie').value.trim() || 'FD29';
-    const numero = document.getElementById('fc-numero').value.trim() || '00023189';
+    const serie = document.getElementById('fc-serie').value.trim() || '001';
+    const numero = document.getElementById('fc-numero').value.trim() || '101';
     const fecha = document.getElementById('fc-emision').value;
     const moneda = document.getElementById('fc-moneda').value;
     const formaPago = document.getElementById('fc-pago').value;
@@ -2949,7 +3202,7 @@ function confirmarGrabarCompra() {
     const horaStr = new Date().toTimeString().slice(0,8);
 
     const docObj = {
-      tipo, serie, numero, fecha, fechaEntrega: fecha, hora: horaStr, ruc, proveedor, moneda, formaPago, dias: 1, vendedor: 'ADM',
+      tipo, serie, numero, fecha, fechaEntrega: fecha, hora: horaStr, ruc, proveedor, moneda, formaPago, dias: 1, vendedor: 'IDE',
       subtotal, neto, igv, percepcion, flete: 0, total, totalUnidades,
       items: JSON.parse(JSON.stringify(compraDraftItems))
     };
@@ -2988,9 +3241,16 @@ function confirmarGrabarCompra() {
     });
 
     saveDB();
-    showVfpNotice('Proceso Grabado', () => {
+    // Secuencia exacta del video (00:56 - 01:03): Desea Grabar -> Desea Imprimir -> Presione tecla para continuar...
+    showVfpConfirm('Desea Imprimir', () => {
+      window.print();
       closeModal();
       nav(tipo === 'GE' ? 'guias_compra' : 'compras');
+      showVfpNotice('Presione tecla para continuar...');
+    }, () => {
+      closeModal();
+      nav(tipo === 'GE' ? 'guias_compra' : 'compras');
+      showVfpNotice('Presione tecla para continuar...');
     });
   });
 }
