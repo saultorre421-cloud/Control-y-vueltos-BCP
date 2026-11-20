@@ -504,6 +504,41 @@
     overflow: auto;
   }
 
+  .tp-lbl {
+    background: #33E6E6;
+    border: 1px solid #5B9E9E;
+    padding: 1px 3px;
+    height: 19px;
+    display: flex;
+    align-items: center;
+    font-size: 10.5px;
+    color: #003344;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .tp-lbl-green {
+    background: #99FF66;
+    border: 1px solid #4E9A2A;
+    padding: 1px 3px;
+    height: 19px;
+    display: flex;
+    align-items: center;
+    font-size: 10.5px;
+    font-weight: bold;
+    color: #003300;
+  }
+  .tp-sec-hdr {
+    background: #2CE0E0;
+    border: 1px solid #4A8F8F;
+    color: #003366;
+    font-weight: bold;
+    text-align: center;
+    padding: 1px 2px;
+    font-size: 10.5px;
+  }
+  .tp-win-bg {
+    background: #C8F8F8 !important;
+  }
   .tp-sec-box {
     border: 1px solid #66AAAA;
     padding: 3px 5px;
@@ -593,6 +628,8 @@
 </head>
 <body>
   <input type="file" id="kardex-xlsx-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportKardexExcel(event)">
+  <input type="file" id="prov-xlsx-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportProveedoresExcel(event)">
+  <input type="file" id="json-backup-input" accept=".json" style="display:none" onchange="handleImportBackupJSON(event)">
 
   <!-- TOP SYSTEM TITLE BAR -->
   <div class="sys-titlebar">
@@ -654,8 +691,10 @@
         <div onclick="nav('inventario')"><span>Reportes Gerenciales</span><span></span></div>
         <div onclick="triggerImportKardexExcel()"><span>Importar Catalogo Excel (KARDEX.xlsx)</span><span></span></div>
         <div onclick="exportProductosExcelOrion()"><span>Exportar Catalogo Excel (KARDEX.xlsx)</span><span></span></div>
+        <div onclick="triggerImportProveedoresExcel()"><span>Importar Proveedores (.xlsx/.csv)</span><span></span></div>
+        <div onclick="triggerImportBackupJSON()"><span>Cargar Respaldo Local (.json)</span><span></span></div>
         <div onclick="exportBackupJSON()"><span>Guardar Respaldo Local (.json)</span><span></span></div>
-        <div onclick="resetDemoData()"><span>Restaurar Datos Iniciales Demo</span><span></span></div>
+        <div onclick="resetDemoData()"><span>Vaciar Base de Datos (Reiniciar Limpio)</span><span></span></div>
       </div>
     </div>
     <div class="m-item">WM
@@ -706,8 +745,13 @@
 /* ============================================================================
    1. BASE DE DATOS LOCAL CON DATOS REALES EXTRAÍDOS DE LAS CAPTURAS Y VIDEOS
    ============================================================================ */
-const DB_STORAGE_KEY = 'ORION_V88_FULL_REPLICA_V2';
+const DB_STORAGE_KEY = 'ORION_V88_CLEAN_PROD_V5';
+const IDB_NAME = 'ORION_V88_SIMULATOR_IDB';
+const IDB_STORE = 'state';
 const CLAVE_6_DIGITOS = '125029';
+
+// Familias que llevan 2% de Percepción en Perú por defecto (editable por producto y por línea)
+const PERCEPCION_FAMILIAS = new Set(['CERVEZ', 'GASEOS', 'AGUAS', 'ENERGI']);
 
 const DEFAULT_STATE = {
   familias: [
@@ -775,133 +819,12 @@ const DEFAULT_STATE = {
     { familia: 'VODKAS', descripcio: 'VODKAS', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '62', redto: '0' },
     { familia: 'WHISKY', descripcio: 'WHISKY', ccta: 'S', obliga: 'N', vefactu: 'S', fact: '1', grupo: 'A', orden: '63', redto: '0' }
   ],
-  productos: [
-    {
-      codigo: '14', barras: '7750243037648', descrip: 'DON VITTORIO FIDEO CORBATA CHICA 235 GR.', desCorta: 'DON VITTORIO FIDEO C',
-      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20448218938 MT DISTRIBUCIONES S.A.',
-      unidad: 'UND', factor: 1, costo: 1.32, costoUlt: 1.32, costoProm: 1.33, costoInicial: 1.38,
-      costoAnt1: 0.00, costoAnt2: 1.34, pvta: 2.00,
-      igv: 18, percep: 0, stock: 25.5, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.001', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '09/08/2026'
-    },
-    {
-      codigo: '1', barras: '7751271001123', descrip: 'LECHE GLORIA AZUL 395 ML', desCorta: 'LECHE GLORIA AZUL 395',
-      presentac: '', familia: 'LACTEO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20604395586 ABARROTES Y PROD.VARIOS AL POR MAYOR',
-      unidad: 'UND', factor: 1, costo: 2.90, costoUlt: 2.90, costoProm: 2.90, costoInicial: 2.90,
-      costoAnt1: 0.00, costoAnt2: 2.85, pvta: 3.50,
-      igv: 18, percep: 0, stock: 8, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.400', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '28/01/2021'
-    },
-    {
-      codigo: '2', barras: '7750106002345', descrip: 'ARROZ COSTEÑO', desCorta: 'ARROZ COSTEÑO',
-      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20604395586 ABARROTES Y PROD.VARIOS AL POR MAYOR',
-      unidad: 'UND', factor: 1, costo: 3.00, costoUlt: 3.00, costoProm: 3.00, costoInicial: 3.00,
-      costoAnt1: 0.00, costoAnt2: 2.95, pvta: 3.50,
-      igv: 18, percep: 0, stock: 12, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.750', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '28/01/2021'
-    },
-    {
-      codigo: '577', barras: '7750182005771', descrip: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', desCorta: 'TRUJILLO CERVEZA 620',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 5.633, costoUlt: 5.633, costoProm: 5.63, costoInicial: 5.63,
-      costoAnt1: 5.63, costoAnt2: 5.50, pvta: 7.00,
-      igv: 18, percep: 2, stock: 240, stkMin: 24, stkMax: 500, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.620', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
-    },
-    {
-      codigo: '581', barras: '7750182005818', descrip: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', desCorta: 'PILSEN CALLAO 620ML',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 6.069, costoUlt: 6.069, costoProm: 6.03, costoInicial: 5.99,
-      costoAnt1: 5.99, costoAnt2: 5.90, pvta: 7.50,
-      igv: 18, percep: 2, stock: 48, stkMin: 12, stkMax: 300, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.620', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026',
-      monCosto: 'S', monPvta: 'S', lista: '01', impresoras: '%', diaUsoPos: '',
-      precios: [
-        { lista: '01', unidad: 'UND', factor: 1, pvta: 7.50, min: 0, max: 0 },
-        { lista: '*01', unidad: 'X6', factor: 6, pvta: 37.00, min: 0, max: 0 },
-        { lista: '*01', unidad: 'X12', factor: 12, pvta: 72.00, min: 0, max: 0 }
-      ]
-    },
-    {
-      codigo: '2289', barras: '7750182022891', descrip: 'PILSEN CALLAO CERVEZA 1 LT.', desCorta: 'PILSEN CALLAO 1 LT.',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 7.940, costoUlt: 7.940, costoProm: 7.94, costoInicial: 7.94,
-      costoAnt1: 7.94, costoAnt2: 7.80, pvta: 9.50,
-      igv: 18, percep: 2, stock: 12, stkMin: 6, stkMax: 120, lote: '01', color: 'NEGRO',
-      pesoKgr: '1.000', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
-    },
-    {
-      codigo: '565', barras: '7750182005658', descrip: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', desCorta: 'CUSQUEÑA NEGRA 355ML',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 4.104, costoUlt: 4.104, costoProm: 4.07, costoInicial: 4.04,
-      costoAnt1: 4.04, costoAnt2: 3.95, pvta: 5.50,
-      igv: 18, percep: 2, stock: 12, stkMin: 6, stkMax: 120, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.355', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
-    },
-    {
-      codigo: '5125', barras: '7750182051250', descrip: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', desCorta: 'CUSQUEÑA TRIGO CERO',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 4.248, costoUlt: 4.248, costoProm: 3.85, costoInicial: 3.47,
-      costoAnt1: 3.47, costoAnt2: 3.40, pvta: 5.50,
-      igv: 18, percep: 2, stock: 6, stkMin: 6, stkMax: 100, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.310', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
-    },
-    {
-      codigo: '4764', barras: '7750182047642', descrip: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', desCorta: 'TRUJILLO PILSEN 473ML',
-      presentac: '', familia: 'CERVEZ', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100113610 UNION DE CERVECERIAS PERUANAS BACKUS',
-      unidad: 'UND', factor: 1, costo: 3.186, costoUlt: 3.186, costoProm: 3.74, costoInicial: 4.30,
-      costoAnt1: 4.30, costoAnt2: 4.20, pvta: 4.50,
-      igv: 18, percep: 2, stock: 60, stkMin: 12, stkMax: 240, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.473', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '07/08/2026'
-    },
-    {
-      codigo: '3', barras: '7750182000035', descrip: 'INCA KOLA', desCorta: 'INCA KOLA',
-      presentac: '', familia: 'GASEOS', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100070970 SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA',
-      unidad: 'UND', factor: 1, costo: 0.00, costoUlt: 0.00, costoProm: 0.00, costoInicial: 0.00,
-      costoAnt1: 0.00, costoAnt2: 0.00, pvta: 2.00,
-      igv: 18, percep: 0, stock: 0, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
-      pesoKgr: '0.500', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '30/04/2021'
-    },
-    {
-      codigo: '22', barras: '7750106000221', descrip: 'AZUCAR RUBIA', desCorta: 'AZUCAR RUBIA',
-      presentac: '', familia: 'ABARRO', subfamilia: '', categoria: '', seccion: '', linea: '', marca: '',
-      proveedor: '20100070970 SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA',
-      unidad: 'UND', factor: 1, costo: 0.00, costoUlt: 0.00, costoProm: 0.00, costoInicial: 0.00,
-      costoAnt1: 0.00, costoAnt2: 0.00, pvta: 3.50,
-      igv: 18, percep: 0, stock: 0, stkMin: 5, stkMax: 100, lote: '01', color: 'NEGRO',
-      pesoKgr: '1.000', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-      activo: 'S', oferta: 'N', remate: 'N', fechaAct: '30/04/2021'
-    }
-  ],
+  // Catálogo limpio (cero productos ficticios; listo para importar Copia de KARDEX.xlsx o crear libremente)
+  productos: [],
   socios: [
-    { codigo: '20100070970', tipoDoc: 'J', nombre: 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA', dir: 'CAL. MORELLI 181 P-2 - SA', telefono: '', esProv: true, esCli: false },
-    { codigo: '20100113610', tipoDoc: 'J', nombre: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.', dir: 'AV. NICOLAS AYLLON 3986 - ATE', telefono: '', esProv: true, esCli: false },
-    { codigo: '20448218938', tipoDoc: 'J', nombre: 'MT DISTRIBUCIONES S.A.', dir: 'JR. COMERCIO 410', telefono: '', esProv: true, esCli: false },
-    { codigo: '72508222', tipoDoc: 'O', nombre: 'ABASTO NMARKET', dir: 'JR. COMERCIO 120', telefono: '', esProv: true, esCli: true },
-    { codigo: '20604395586', tipoDoc: 'J', nombre: 'ABARROTES Y PROD.VARIOS AL POR MAYOR', dir: 'AV. CENTRAL 450', telefono: '', esProv: true, esCli: false },
-    { codigo: '20614683881', tipoDoc: 'J', nombre: 'S & C SOLUCIONES INTEGRALES S.A.C.', dir: 'AV. FRANCISCO ALAYZA Y PAZ SOLDAN', telefono: '', esProv: true, esCli: false },
-    { codigo: '20498769644', tipoDoc: 'J', nombre: 'GRUPO VEGA DISTRIBUCION S.A.C.', dir: 'AV. NICOLAS AYLLON 1240', telefono: '', esProv: true, esCli: false },
-    { codigo: '20483192313', tipoDoc: 'J', nombre: 'MAKRO SUPERMAYORISTA S.A.', dir: 'AV. JORGE CHAVEZ 1218', telefono: '', esProv: true, esCli: false }
+    { codigo: '20448218938', tipoDoc: 'J', nombre: 'MT DISTRIBUCIONES S.A.', dir: '', telefono: '', esProv: true, esCli: false },
+    { codigo: '20100239559', tipoDoc: 'J', nombre: 'MORAN DISTRIBUCIONES', dir: '', telefono: '', esProv: true, esCli: false },
+    { codigo: '20100113610', tipoDoc: 'J', nombre: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.', dir: '', telefono: '', esProv: true, esCli: false }
   ],
   formasPago: [
     { pago: '1', descrip: 'EFECTIVO' },
@@ -914,39 +837,83 @@ const DEFAULT_STATE = {
     { tipo: 'BC', descrip: 'BOLETA DE COMPRA' },
     { tipo: 'NC', descrip: 'NOTA DE COMPRA' }
   ],
-  compras: [
-    {
-      tipo: 'FC', serie: 'FD29', numero: '00023188', fecha: '2026-08-07', fechaEntrega: '2026-08-07', hora: '18:35:05',
-      ruc: '20100113610', proveedor: 'UNION DE CERVECERIAS PERUANAS BACKUS Y JOHNSTON S.A.A.',
-      moneda: 'S', formaPago: '1', dias: 1, vendedor: 'ADM',
-      subtotal: 1698.81, neto: 2004.59, igv: 305.79, percepcion: 40.09, flete: 0.00, total: 2044.68, totalUnidades: 378,
-      items: [
-        { codigo: '577', descrip: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', unidad: 'UND', factor: 1, cant: 240, recib: 240, precio: 5.633, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:34:0', costoAnt: 5.63 },
-        { codigo: '581', descrip: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', unidad: 'UND', factor: 1, cant: 48, recib: 48, precio: 6.069, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:34:5', costoAnt: 5.99 },
-        { codigo: '2289', descrip: 'PILSEN CALLAO CERVEZA 1 LT.', unidad: 'UND', factor: 1, cant: 12, recib: 12, precio: 7.940, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:0', costoAnt: 7.94 },
-        { codigo: '565', descrip: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', unidad: 'UND', factor: 1, cant: 12, recib: 12, precio: 4.104, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:2', costoAnt: 4.04 },
-        { codigo: '5125', descrip: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', unidad: 'UND', factor: 1, cant: 6, recib: 6, precio: 4.248, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:4', costoAnt: 3.47 },
-        { codigo: '4764', descrip: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', unidad: 'UND', factor: 1, cant: 60, recib: 60, precio: 3.186, desc: 0, percPct: 2, iscPct: 0, igvPct: 18, familia: 'CERVEZ', subfamilia: '', marca: '', hora: '18:35:5', costoAnt: 4.30 }
-      ]
-    }
-  ],
+  compras: [],
   guiasCompra: [],
   ventas: [],
   movimientosDinero: [],
-  kardex: [
-    { fecha: '2026-08-07', hora: '18:34:00', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '577', producto: 'TRUJILLO CERVEZA PILSEN 620 ML. BOTELLA', entrada: 240, salida: 0, saldo: 240, costo: 5.633 },
-    { fecha: '2026-08-07', hora: '18:34:05', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '581', producto: 'PILSEN CALLAO CERVEZA 620 ML. BOTELLA', entrada: 48, salida: 0, saldo: 48, costo: 6.069 },
-    { fecha: '2026-08-07', hora: '18:35:00', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '2289', producto: 'PILSEN CALLAO CERVEZA 1 LT.', entrada: 12, salida: 0, saldo: 12, costo: 7.940 },
-    { fecha: '2026-08-07', hora: '18:35:02', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '565', producto: 'CUSQUEÑA NEGRA CERVEZA 355 ML. LATA', entrada: 12, salida: 0, saldo: 12, costo: 4.104 },
-    { fecha: '2026-08-07', hora: '18:35:04', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '5125', producto: 'CUSQUEÑA TRIGO CERVEZA CERO 310 ML. LATA', entrada: 6, salida: 0, saldo: 6, costo: 4.248 },
-    { fecha: '2026-08-07', hora: '18:35:05', tipo: 'FC', doc: 'FC FD29-00023188', codigo: '4764', producto: 'TRUJILLO CERVEZA PILSEN 473 ML. LATA', entrada: 60, salida: 0, saldo: 60, costo: 3.186 }
-  ]
+  kardex: []
 };
 
-let db = loadDB();
+/* Motor Dual de Persistencia Local: IndexedDB (capacidad ilimitada para miles de productos)
+   con respaldo automático a localStorage si el entorno restringe IndexedDB */
+const OrionStorage = {
+  _idb: null,
+  async open() {
+    if (this._idb) return this._idb;
+    return new Promise((resolve, reject) => {
+      if (!window.indexedDB) return reject(new Error('No IndexedDB'));
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const d = req.result;
+        if (!d.objectStoreNames.contains(IDB_STORE)) d.createObjectStore(IDB_STORE);
+      };
+      req.onsuccess = () => { this._idb = req.result; resolve(this._idb); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async get() {
+    try {
+      const idb = await this.open();
+      return await new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get('main');
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch {
+      try {
+        const raw = localStorage.getItem(DB_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+  },
+  async set(data) {
+    try {
+      const idb = await this.open();
+      await new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(data, 'main');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      try {
+        localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Almacenamiento lleno:', e);
+      }
+    }
+  },
+  async clear() {
+    try {
+      const idb = await this.open();
+      await new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).delete('main');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {}
+    try { localStorage.removeItem(DB_STORAGE_KEY); } catch {}
+  }
+};
+
+let db = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let isLogged = false;
 let currentView = 'login';
-let selectedProdCod = '14';
+let selectedProdCod = '';
 let selectedCompraIdx = 0;
 
 function getEffectiveUnitCost(p) {
@@ -987,13 +954,13 @@ function normalizeProduct(p) {
     proveedor: '', unidad: 'UND', factor: 1,
     costo: 0, costoUlt: 0, costoProm: 0, costoInicial: 0, costoAnt1: 0, costoAnt2: 0,
     pvta: 0, igv: 18, percep: 0, isc: 0, ibolsa: 0, flete: 0, ivap: 0, dsctRef: 0,
-    detrac: 0, rentabili: 0, ordTouc: 0, servicioNum: 0, inventaDiario: '',
-    stock: 0, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO',
+    detrac: 0, rentabili: 0, ordTouc: 0, servicioNum: 0, inventaDiario: '', teclaRapida: '',
+    stock: 0, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO', colorTxt: '',
     pesoKgr: '0.001', peso: 'N', serie: 'N', servicio: 'N', veCaja: 'S', vtaUnid: 'N',
-    activo: 'S', oferta: 'N', remate: 'N',
+    activo: 'S', oferta: 'N', remate: 'N', cambista: '', operacio: '',
     monCosto: 'S', monPvta: 'S', lista: '01', diaUsoPos: '', impresoras: '%',
-    puertoDesp1: '', grupoDesp: '', colaImpresion: '5', comision: 0, facReporte: 0,
-    descFijo: 0, fechaVence: '', codigoSunat: '', fabricante: '',
+    puertoDesp1: '', grupoDesp: '', colaImpresion: '5', comision: 0, comision2: 0, facReporte: 0,
+    descFijo: 0, fechaVence: '', codigoSunat: '', fabricante: '', recetaPrn: '',
     fechaAct: new Date().toLocaleDateString('es-PE'),
     ...p
   };
@@ -1010,61 +977,73 @@ function normalizeProduct(p) {
   return base;
 }
 
-function loadDB() {
-  const raw = localStorage.getItem(DB_STORAGE_KEY);
-  if (!raw) {
-    const fresh = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    fresh.productos = fresh.productos.map(normalizeProduct);
-    localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(fresh));
-    return fresh;
+async function initDBFromStorage() {
+  const saved = await OrionStorage.get();
+  if (saved && Array.isArray(saved.familias) && Array.isArray(saved.productos)) {
+    db = saved;
+    db.productos = db.productos.map(normalizeProduct);
+    if (!db.compras) db.compras = [];
+    if (!db.guiasCompra) db.guiasCompra = [];
+    if (!db.ventas) db.ventas = [];
+    if (!db.kardex) db.kardex = [];
+    if (!db.movimientosDinero) db.movimientosDinero = [];
+    if (!db.socios) db.socios = JSON.parse(JSON.stringify(DEFAULT_STATE.socios));
+    selectedProdCod = db.productos[0]?.codigo || '';
+  } else {
+    db = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    await OrionStorage.set(db);
   }
-  const parsed = JSON.parse(raw);
-  // Fusiona las 63 familias reales sin perder familias creadas por el usuario
-  DEFAULT_STATE.familias.forEach(defF => {
-    if (!parsed.familias.some(f => f.familia === defF.familia)) {
-      parsed.familias.push(JSON.parse(JSON.stringify(defF)));
-    }
-  });
-  parsed.familias.sort((a, b) => a.familia.localeCompare(b.familia));
-
-  // Asegura productos demo clave sin borrar datos guardados
-  ['3', '22', '581'].forEach(cod => {
-    if (!parsed.productos.some(p => p.codigo === cod)) {
-      const defP = DEFAULT_STATE.productos.find(p => p.codigo === cod);
-      if (defP) parsed.productos.push(JSON.parse(JSON.stringify(defP)));
-    }
-  });
-  // Si 581 existe sin escalas de precios, agrega sus escalas reales *01 (X6 y X12)
-  const p581 = parsed.productos.find(p => p.codigo === '581');
-  if (p581 && (!p581.precios || p581.precios.length <= 1)) {
-    const def581 = DEFAULT_STATE.productos.find(p => p.codigo === '581');
-    if (def581) p581.precios = JSON.parse(JSON.stringify(def581.precios));
-  }
-  parsed.productos = parsed.productos.map(normalizeProduct);
-
-  if (!parsed.socios.some(s => s.codigo === '20100070970')) {
-    const defS = DEFAULT_STATE.socios.find(s => s.codigo === '20100070970');
-    if (defS) parsed.socios.unshift(JSON.parse(JSON.stringify(defS)));
-  }
-  return parsed;
 }
+
 function saveDB() {
-  localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(db));
+  OrionStorage.set(db);
 }
+
 function resetDemoData() {
-  localStorage.removeItem(DB_STORAGE_KEY);
-  db = loadDB();
-  selectedProdCod = '14';
-  selectedCompraIdx = 0;
-  showVfpNotice('Base de datos demo restaurada.');
-  nav(isLogged ? 'dashboard' : 'login');
+  showVfpConfirm('¿Desea vaciar todos los productos, compras y kardex para iniciar la base de datos limpia?', async () => {
+    await OrionStorage.clear();
+    db = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    selectedProdCod = '';
+    selectedCompraIdx = 0;
+    await OrionStorage.set(db);
+    showVfpNotice('Base de datos reiniciada limpia (63 familias listas).');
+    nav(isLogged ? 'dashboard' : 'login');
+  });
 }
+
 function exportBackupJSON() {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `Orion_V88_Respaldo_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
+}
+
+function triggerImportBackupJSON() {
+  const inp = document.getElementById('json-backup-input');
+  if (inp) { inp.value = ''; inp.click(); }
+}
+
+function handleImportBackupJSON(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.productos || !parsed.familias) throw new Error('Estructura no válida');
+      db = parsed;
+      db.productos = db.productos.map(normalizeProduct);
+      selectedProdCod = db.productos[0]?.codigo || '';
+      saveDB();
+      showVfpNotice(`Respaldo cargado: ${db.productos.length} productos y ${db.compras?.length || 0} compras.`, () => {
+        nav(isLogged ? 'dashboard' : 'login');
+      });
+    } catch {
+      showVfpNotice('El archivo .json no corresponde a un respaldo válido de Orión.');
+    }
+  };
+  r.readAsText(file);
 }
 
 setInterval(() => {
@@ -1425,9 +1404,9 @@ function renderProductosWindow(ws, showStockPopup = false) {
       <!-- Toolbar 1: Add (NUEVO), Modifica (MODIFICANDO), Borra, Zoom (VER) -->
       <div class="vfp-toolbar">
         <button class="vfp-tbtn" onclick="openTablaProductoModal(null, 'NUEVO', false)"><span class="ico">📄</span>Add</button>
-        <button class="vfp-tbtn" onclick="openTablaProductoModal(selectedProdCod, 'MODIFICANDO', false)"><span class="ico">✏️</span>Modifica</button>
+        <button class="vfp-tbtn" onclick="if(!selectedProdCod){showVfpNotice('No hay producto seleccionado.');}else{openTablaProductoModal(selectedProdCod, 'MODIFICANDO', false);}"><span class="ico">✏️</span>Modifica</button>
         <button class="vfp-tbtn" onclick="deleteSelectedProducto()"><span class="ico">🗑️</span>Borra</button>
-        <button class="vfp-tbtn" onclick="openTablaProductoModal(selectedProdCod, 'VER', false)" title="Visualizar ficha completa en modo solo lectura (VER)"><span class="ico">🔍</span>Zoom</button>
+        <button class="vfp-tbtn" onclick="if(!selectedProdCod){showVfpNotice('No hay producto seleccionado.');}else{openTablaProductoModal(selectedProdCod, 'VER', false);}" title="Visualizar ficha completa en modo solo lectura (VER)"><span class="ico">🔍</span>Zoom</button>
         <button class="vfp-tbtn" onclick="exportProductosExcelOrion()"><span class="ico">📗</span>Excell</button>
         <button class="vfp-tbtn" onclick="nav('inventario')"><span class="ico">🖨️</span>Reporte</button>
         <button class="vfp-tbtn" onclick="openTablaFamiliasModal()"><span class="ico">➕</span>Mas</button>
@@ -1470,6 +1449,13 @@ function renderProductosWindow(ws, showStockPopup = false) {
                 </tr>
               </thead>
               <tbody>
+                ${filtered.length === 0 ? `
+                  <tr>
+                    <td colspan="12" style="text-align:center; padding:26px; color:#333;">
+                      Sin productos registrados. Presione <b>Add</b> para crear un producto o vaya a <b>Gerente → Importar Catalogo Excel (KARDEX.xlsx)</b>.
+                    </td>
+                  </tr>
+                ` : ''}
                 ${visibleProds.map(p => `
                   <tr class="${p.codigo === selectedProdCod ? 'active-row' : ''}" onclick="selectProdRow('${p.codigo}')" ondblclick="openTablaProductoModal('${p.codigo}', 'VER', false)" title="Clic para seleccionar, Doble clic o Zoom para abrir en modo VER">
                     <td>${p.codigo}</td>
@@ -1787,6 +1773,7 @@ function handleImportKardexExcel(ev) {
       let currentFam = 'ABARRO';
       let lastProd = null;
       const importedProds = [];
+      const importedKardex = [];
       const importedFamsMap = new Map();
       db.familias.forEach(f => importedFamsMap.set(f.familia, f));
 
@@ -1802,6 +1789,8 @@ function handleImportKardexExcel(ev) {
       }
 
       const hoy = new Date().toLocaleDateString('es-PE');
+      const hoyISO = new Date().toISOString().slice(0, 10);
+
       for (let i = startIdx; i < aoa.length; i++) {
         const r = aoa[i];
         if (!r || r.length === 0) continue;
@@ -1817,7 +1806,7 @@ function handleImportKardexExcel(ev) {
 
         if (!c0 && !c1 && !c2) continue;
 
-        // 1. Fila cabecera de Familia (Producto y Descripcio llenos, pero Lista y PVenta vacíos)
+        // 1. Fila cabecera de Familia (Producto y Descripcio llenos, Lista/Und/PVenta vacíos)
         if (c0 && c1 && !c2 && c5 === '' && c3 === '') {
           currentFam = c0.toUpperCase().slice(0, 6);
           if (!importedFamsMap.has(currentFam)) {
@@ -1853,6 +1842,9 @@ function handleImportKardexExcel(ev) {
           const cost = parseFloat(c7) || 0;
           const stk = (c9 === '' || c9 === null || c9 === undefined) ? 0 : (parseFloat(c9) || 0);
           const und = (c3 || 'UND').toUpperCase();
+          const isPeso = (und === 'KILOGR' || und === 'KG') ? 'S' : 'N';
+          const defaultPerc = PERCEPCION_FAMILIAS.has(currentFam) ? 2 : 0;
+
           const prodObj = normalizeProduct({
             codigo: c0.toUpperCase(),
             barras: '',
@@ -1866,6 +1858,10 @@ function handleImportKardexExcel(ev) {
             costoProm: cost,
             costoInicial: cost,
             pvta: pv,
+            igv: 18,
+            percep: defaultPerc,
+            peso: isPeso,
+            pesoKgr: isPeso === 'S' ? '1.000' : '0.001',
             monCosto: c6.toUpperCase() === 'D' ? 'D' : 'S',
             monPvta: c6.toUpperCase() === 'D' ? 'D' : 'S',
             lista: c2 || '01',
@@ -1875,6 +1871,22 @@ function handleImportKardexExcel(ev) {
           });
           importedProds.push(prodObj);
           lastProd = prodObj;
+
+          // Registra SALDO INICIAL en Kardex para que Recalculo Saldos y KardexSunat cuadren exacto
+          if (stk !== 0) {
+            importedKardex.push({
+              fecha: hoyISO,
+              hora: '00:00:00',
+              tipo: 'SI',
+              doc: 'SALDO INICIAL',
+              codigo: prodObj.codigo,
+              producto: prodObj.descrip,
+              entrada: stk > 0 ? stk : 0,
+              salida: stk < 0 ? Math.abs(stk) : 0,
+              saldo: stk,
+              costo: cost
+            });
+          }
         }
       }
 
@@ -1882,13 +1894,14 @@ function handleImportKardexExcel(ev) {
         return showVfpNotice('No se detectaron productos con el formato KARDEX de Orión.');
       }
 
-      showVfpConfirm(`Se leyeron ${importedProds.length} productos y ${importedFamsMap.size} familias desde "${file.name}". ¿Desea reemplazar el catálogo actual del simulador?`, () => {
+      showVfpConfirm(`Se leyeron ${importedProds.length} productos y ${importedFamsMap.size} familias desde "${file.name}". ¿Desea cargar este catálogo real en la base local?`, () => {
         db.familias = Array.from(importedFamsMap.values()).sort((a, b) => a.familia.localeCompare(b.familia));
         db.productos = importedProds;
+        db.kardex = importedKardex;
         selectedProdCod = db.productos[0].codigo;
         window._showAllProds = false;
         saveDB();
-        showVfpNotice(`Catálogo cargado: ${importedProds.length} productos listos.`, () => {
+        showVfpNotice(`Catálogo cargado en base local: ${importedProds.length} productos listos.`, () => {
           nav('productos');
         });
       });
@@ -1899,16 +1912,60 @@ function handleImportKardexExcel(ev) {
   reader.readAsArrayBuffer(file);
 }
 
+function triggerImportProveedoresExcel() {
+  const inp = document.getElementById('prov-xlsx-input');
+  if (inp) { inp.value = ''; inp.click(); }
+}
+
+function handleImportProveedoresExcel(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (!window.XLSX) return showVfpNotice('Se requiere SheetJS para leer archivos .xlsx.');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+      let added = 0;
+      for (let i = 0; i < aoa.length; i++) {
+        const r = aoa[i];
+        const ruc = String(r[0] ?? '').trim();
+        const nom = String(r[1] ?? '').trim().toUpperCase();
+        const dir = String(r[2] ?? '').trim().toUpperCase();
+        if (!/^\d{8,11}$/.test(ruc) || !nom) continue;
+        if (!db.socios.some(s => s.codigo === ruc)) {
+          db.socios.push({ codigo: ruc, tipoDoc: ruc.length === 11 ? 'J' : 'C', nombre: nom, dir, telefono: '', esProv: true, esCli: false });
+          added++;
+        }
+      }
+      saveDB();
+      showVfpNotice(`Proveedores importados: ${added} nuevos registros.`);
+    } catch (err) {
+      showVfpNotice('Error al importar proveedores: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 /* ============================================================================
-   8. 'Tabla de productos' EXACTA AL SISTEMA REAL (DESPLEGABLES S/N, 3 FILAS
-   DE COSTO UNITARIO / EMPAQUE, Y GRILLA DE 7 ESCALAS DE PRECIO *01)
+   8. 'Tabla de productos' EXACTA AL SISTEMA REAL (CAPTURAS 15, 16, 17, 18)
    ============================================================================ */
-function buildSNSelect(id, val, disAttr) {
+function buildSNSelect(id, val, disAttr, highlightYellow = false) {
   const v = (val || 'N').toUpperCase() === 'S' ? 'S' : 'N';
-  return `<select id="${id}" ${disAttr} style="width:100%; height:19px; padding:0 1px;">
+  const bgStyle = highlightYellow && !disAttr ? 'background:#FFFFCC;' : (highlightYellow ? 'background:#F4F4D0;' : '');
+  return `<select id="${id}" ${disAttr} style="width:100%; height:19px; padding:0 1px; ${bgStyle}">
     <option value="N" ${v==='N'?'selected':''}>N</option>
     <option value="S" ${v==='S'?'selected':''}>S</option>
   </select>`;
+}
+
+function getNextAutoProdCode() {
+  let maxNum = 0;
+  db.productos.forEach(p => {
+    const n = parseInt(p.codigo, 10);
+    if (!isNaN(n) && String(n) === p.codigo.trim() && n > maxNum) maxNum = n;
+  });
+  return String(maxNum + 1);
 }
 
 function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = false) {
@@ -1917,9 +1974,8 @@ function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = fal
   const roAttr = isVer ? 'readonly class="ro"' : '';
   const disAttr = isVer ? 'disabled' : '';
 
-  const nextAutoCod = String(Math.max(15, db.productos.length + 1));
   const p = isNew ? normalizeProduct({
-    codigo: nextAutoCod, barras: '', descrip: '', desCorta: '', presentac: '',
+    codigo: getNextAutoProdCode(), barras: '', descrip: '', desCorta: '', presentac: '',
     familia: '', unidad: 'UND', factor: 1,
     costo: 0, costoUlt: 0, costoProm: 0, costoInicial: 0, costoAnt1: 0, costoAnt2: 0,
     pvta: 0, igv: 18, percep: 0, stkMin: 0, stkMax: 0, lote: '01', color: 'NEGRO',
@@ -1934,38 +1990,39 @@ function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = fal
   const costoPaqIni = (Number(p.costoInicial || effCost) * factorVal).toFixed(2);
   const preciosList = getProductPrecios(p);
 
-  // Construye las 7 filas de la grilla de precios (Fila 1 = base, Filas 2..7 = escalas *01)
+  // Construye las 8 filas exactas visibles de la grilla de precios
   const priceRows = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     const sc = preciosList[i] || { lista: i === 0 ? (p.lista || '01') : '*01', unidad: '', factor: 0, pvta: 0, min: 0, max: 0 };
     const mTxt = (i === 0 || (sc.unidad && Number(sc.pvta) > 0))
       ? formatGananciaOrion(sc.pvta, effCost, sc.factor || (i === 0 ? 1 : 0))
       : '0';
     const unitOptions = [''].concat(ORION_UNITS);
     if (sc.unidad && !unitOptions.includes(sc.unidad)) unitOptions.push(sc.unidad);
+    const row1Style = i === 0 ? 'background:#FFFFCC; font-weight:bold;' : '';
 
     priceRows.push(`
-      <tr>
+      <tr style="${row1Style}">
         <td style="padding:0;">
           ${i === 0
-            ? `<input type="text" id="tp-pr-und-0" class="ro" readonly value="${sc.unidad || p.unidad}" style="width:52px; height:18px; border:none; font-weight:bold;">`
+            ? `<input type="text" id="tp-pr-und-0" readonly value="${sc.unidad || p.unidad}" style="width:52px; height:18px; border:none; font-weight:bold; background:#FFFFCC;">`
             : `<select id="tp-pr-und-${i}" ${disAttr} style="width:54px; height:18px; border:none; padding:0;" onchange="recalcTablaProdAllMargens()">
                 ${unitOptions.map(u => `<option value="${u}" ${sc.unidad===u?'selected':''}>${u}</option>`).join('')}
               </select>`
           }
         </td>
         <td style="padding:0;">
-          <input type="number" step="any" id="tp-pr-fac-${i}" ${i===0 ? 'readonly class="ro"' : roAttr} value="${i===0 ? (sc.factor || 1) : (sc.factor || 0)}"
-                 style="width:42px; height:18px; border:none; text-align:right; ${i===0?'font-weight:bold;':''}" oninput="recalcTablaProdAllMargens()">
+          <input type="number" step="any" id="tp-pr-fac-${i}" ${i===0 ? 'readonly' : roAttr} value="${i===0 ? (sc.factor || 1) : (sc.factor || 0)}"
+                 style="width:40px; height:18px; border:none; text-align:right; ${i===0?'font-weight:bold; background:#FFFFCC;':''}" oninput="recalcTablaProdAllMargens()">
         </td>
         <td style="padding:0;">
-          <input type="number" step="0.01" id="tp-pr-pvta-${i}" class="${isVer?'ro':(i===0?'req':'')}" ${isVer?'readonly':''} value="${sc.pvta || 0}"
-                 style="width:54px; height:18px; border:none; text-align:right; ${i===0?'font-weight:bold;':''}" oninput="recalcTablaProdAllMargens()">
+          <input type="number" step="0.01" id="tp-pr-pvta-${i}" ${isVer?'readonly':''} value="${sc.pvta || 0}"
+                 style="width:54px; height:18px; border:none; text-align:right; ${i===0?'font-weight:bold; background:#FFFFCC;':(isVer?'background:#ECE9D8;':'')}" oninput="recalcTablaProdAllMargens()">
         </td>
-        <td id="tp-pr-mrg-${i}" style="text-align:right; font-weight:${i===0?'bold':'normal'}; color:${mTxt==='RevisaCosto'?'#CC0000':'#000'};">${mTxt}</td>
+        <td id="tp-pr-mrg-${i}" style="text-align:right; font-weight:${i===0?'bold':'normal'}; color:${mTxt==='RevisaCosto'?'#CC0000':'#000'}; ${row1Style}">${mTxt}</td>
         <td style="text-align:right;">0</td>
-        <td style="padding:0;"><input type="number" id="tp-pr-min-${i}" ${roAttr} value="${sc.min || 0}" style="width:32px; height:18px; border:none; text-align:right;"></td>
-        <td style="padding:0;"><input type="number" id="tp-pr-max-${i}" ${roAttr} value="${sc.max || 0}" style="width:32px; height:18px; border:none; text-align:right;"></td>
+        <td style="padding:0;"><input type="number" id="tp-pr-min-${i}" ${roAttr} value="${sc.min || 0}" style="width:30px; height:18px; border:none; text-align:right;"></td>
+        <td style="padding:0;"><input type="number" id="tp-pr-max-${i}" ${roAttr} value="${sc.max || 0}" style="width:30px; height:18px; border:none; text-align:right;"></td>
         <td style="text-align:right;">0</td>
         <td style="text-align:right;">0</td>
       </tr>
@@ -1976,215 +2033,224 @@ function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = fal
   if (p.unidad && !empUnitOptions.includes(p.unidad)) empUnitOptions.unshift(p.unidad);
 
   openModal('Tabla de productos', `
-    <div style="width:905px; max-width:97vw;">
-      <!-- Barra superior exacta: Grabar | Salir + iconos (Grabar gris en modo VER) -->
-      <div class="vfp-subbar" style="margin:-5px -5px 2px -5px; gap:8px;">
+    <div class="tp-win-bg" style="width:920px; max-width:97vw; padding:4px; margin:-5px;">
+      <!-- Barra superior exacta de las capturas: Grabar | Salir + 3 iconos -->
+      <div class="vfp-subbar" style="margin:-4px -4px 2px -4px; gap:8px; background:#F0F0F0;">
         <button class="vfp-btn" style="font-size:10.5px; padding:1px 8px;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})">Grabar</button>
         <button class="vfp-btn" style="font-size:10.5px; padding:1px 8px;" onclick="closeModal()">Salir</button>
       </div>
-      <div class="vfp-toolbar" style="margin:0 -5px 4px -5px;">
-        <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="openTablaProductoModal(null, 'NUEVO', ${returnToCompra})" title="Nuevo">📄</button>
-        <button class="vfp-btn" style="height:26px; width:32px;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})" title="Grabar">💾</button>
-        <button class="vfp-btn" style="height:26px; width:32px;" onclick="closeModal()" title="Salir">🚪</button>
-        <div style="margin-left:auto; display:grid; grid-template-columns: 72px 155px; gap:2px; align-items:center;">
-          <span>CodigoSunat</span><input type="text" id="tp-codsunat" ${roAttr} value="${p.codigoSunat || ''}" style="height:18px;">
-          <span>Fabricante</span><input type="text" id="tp-fabricante" ${roAttr} value="${p.fabricante || ''}" style="height:18px;">
+      <div class="vfp-toolbar" style="margin:0 -4px 5px -4px; background:#F0F0F0;">
+        <button class="vfp-btn" style="height:28px; width:34px;" ${isVer ? 'disabled' : ''} onclick="openTablaProductoModal(null, 'NUEVO', ${returnToCompra})" title="Nuevo">📄</button>
+        <button class="vfp-btn" style="height:28px; width:34px;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})" title="Grabar">💾</button>
+        <button class="vfp-btn" style="height:28px; width:34px;" onclick="closeModal()" title="Salir">🚪</button>
+        <div style="margin-left:auto; display:grid; grid-template-columns: 76px 155px; gap:2px; align-items:center;">
+          <div class="tp-lbl">CodigoSunat</div><input type="text" id="tp-codsunat" ${roAttr} value="${p.codigoSunat || ''}" style="height:19px;">
+          <div class="tp-lbl">Fabricante</div><input type="text" id="tp-fabricante" ${roAttr} value="${p.fabricante || ''}" style="height:19px;">
         </div>
       </div>
 
-      <!-- Bloque Superior Exacto (Producto, CodBarra, Familia, Subfamilia, Seccion, Marca, RecetaPrn, Proveedor) -->
-      <div style="display:grid; grid-template-columns: 58px 132px 62px 66px 20px 56px 76px 20px 60px 1fr; gap:2px 4px; align-items:center; margin-bottom:3px;">
-        <label>Producto</label>
-        <input type="text" id="tp-codigo" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.codigo}">
+      <!-- Bloque Superior Exacto (Producto verde, CodBarra, Familia/Subfamilia F7 Crea, Seccion/Marca F7Crea, RecetaPrn, Proveedor) -->
+      <div style="display:grid; grid-template-columns: 64px 136px 76px 66px 22px 22px 66px 76px 66px 1fr; gap:2px 3px; align-items:center; margin-bottom:4px;">
+        <div class="tp-lbl-green">Producto</div>
+        <input type="text" id="tp-codigo" style="font-weight:bold; ${isVer?'background:#FFF;':''}" class="${isVer?'':'req'}" ${isVer?'readonly':''} value="${p.codigo}">
 
-        <label>Familia</label>
-        <input type="text" id="tp-familia" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} maxlength="6" value="${p.familia}"
+        <div class="tp-lbl">Familia</div>
+        <input type="text" id="tp-familia" style="font-weight:bold;" class="${isVer?'':'req'}" ${isVer?'readonly':''} maxlength="6" value="${p.familia}"
                data-f1="openConsultaModal('FAMILIA', 'tp-familia', 'tp-fam-desc')"
                data-f7="openTablaFamiliasModal(true)"
                onchange="syncFamDesc()">
-        <div class="stacked-f-btns">
-          <button ${disAttr} onclick="openConsultaModal('FAMILIA', 'tp-familia', 'tp-fam-desc')" title="F1 Consulta">🔍</button>
-          <button ${disAttr} onclick="openTablaFamiliasModal(true)" title="F7 Crea">+</button>
-        </div>
+        <button class="f1-btn" ${disAttr} onclick="openConsultaModal('FAMILIA', 'tp-familia', 'tp-fam-desc')" title="F1 Consulta Familias">🔍</button>
+        <button class="f1-btn" ${disAttr} onclick="openTablaFamiliasModal(true)" title="F7 Crear Familia">+</button>
 
-        <label>Seccion</label>
+        <div class="tp-lbl">Seccion</div>
         <input type="text" id="tp-sec" ${roAttr} value="${p.seccion || ''}">
-        <button class="f1-btn" ${disAttr}>+</button>
 
-        <label>RecetaPrn</label>
-        <input type="text" id="tp-fam-desc" class="ro" readonly value="${famObj ? famObj.descripcio : ''}">
+        <div class="tp-lbl">RecetaPrn</div>
+        <input type="text" id="tp-recetaprn" ${roAttr} value="${p.recetaPrn || ''}">
 
-        <label>CodBarra</label>
-        <input type="text" id="tp-barras" ${roAttr} value="${p.barras || ''}">
+        <div class="tp-lbl">CodBarra</div>
+        <input type="text" id="tp-barras" style="font-weight:bold;" ${roAttr} value="${p.barras || ''}">
 
-        <label>Subfamilia</label>
-        <input type="text" id="tp-subfam" ${roAttr} value="${p.subfamilia || ''}">
-        <button class="f1-btn" ${disAttr}>+</button>
+        <div class="tp-lbl" title="F7 Crea">Subfamilia</div>
+        <input type="text" id="tp-subfam" ${roAttr} value="${p.subfamilia || ''}" style="grid-column: span 2;">
+        <button class="f1-btn" ${disAttr} onclick="openTablaFamiliasModal(true)" title="F7 Crea">+</button>
 
-        <label>Marca</label>
+        <div class="tp-lbl">Marca</div>
         <input type="text" id="tp-marca" ${roAttr} value="${p.marca || ''}">
-        <button class="f1-btn" ${disAttr}>+</button>
 
-        <label>Proveedor</label>
+        <div class="tp-lbl">Proveedor</div>
         <select id="tp-proveedor" ${disAttr} style="width:100%;">
-          <option value="">-- SELECCIONE PROVEEDOR --</option>
+          <option value=""></option>
           ${db.socios.map(s => `<option value="${s.codigo} ${s.nombre}" ${(p.proveedor||'').startsWith(s.codigo)?'selected':''}>${s.codigo} ${s.nombre}</option>`).join('')}
         </select>
       </div>
 
-      <!-- Filas Descrip, DescCorto, Presentac + Desplegables Exactos S / N (Serie, Servicio, VeCaja, Peso, VtaUnid, Remate, Activo, Oferta, Color) -->
-      <div style="display:grid; grid-template-columns: 58px 1fr 56px 96px 42px 38px 46px 38px 46px 38px 72px; gap:2px 3px; align-items:center; margin-bottom:4px;">
-        <label>Descrip</label>
-        <input type="text" id="tp-descrip" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.descrip}"
+      <!-- Filas Descrip, DescCorto, Presentac + Categoria/Linea/Color + 3 Columnas de S/N + NEGRO/Cambista/Operacio -->
+      <div style="display:grid; grid-template-columns: 64px 1fr 62px 86px 46px 38px 50px 38px 48px 38px 82px; gap:2px 3px; align-items:center; margin-bottom:4px;">
+        <div class="tp-lbl">Descrip</div>
+        <input type="text" id="tp-descrip" style="font-weight:bold; background:#FFFFCC;" ${isVer?'readonly':''} value="${p.descrip}"
                onkeydown="if(event.key==='Enter'){event.preventDefault(); copiarDesCorta(); document.getElementById('tp-descorta').focus();}">
-        <label>Categoria</label>
+        <div class="tp-lbl">Categoria</div>
         <input type="text" id="tp-cat" ${roAttr} value="${p.categoria || ''}">
-        <label>Serie</label>${buildSNSelect('tp-serie', p.serie, disAttr)}
-        <label>Servicio</label>${buildSNSelect('tp-servicio', p.servicio, disAttr)}
-        <label>VeCaja</label>${buildSNSelect('tp-vecaja', p.veCaja, disAttr)}
-        <span></span>
+        <div class="tp-lbl">Serie</div>${buildSNSelect('tp-serie', p.serie, disAttr)}
+        <div class="tp-lbl">Servicio</div>${buildSNSelect('tp-servicio', p.servicio, disAttr)}
+        <div class="tp-lbl">VeCaja</div>${buildSNSelect('tp-vecaja', p.veCaja, disAttr)}
+        <div style="background:#004040; height:19px; border:1px solid #336666;"></div>
 
-        <label>DescCorto</label>
-        <input type="text" id="tp-descorta" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${p.desCorta}"
+        <div class="tp-lbl">DescCorto</div>
+        <input type="text" id="tp-descorta" style="font-weight:bold; background:#FFFFCC;" ${isVer?'readonly':''} value="${p.desCorta}"
                ondblclick="if(!${isVer}) copiarDesCorta()"
                onkeydown="if(event.key==='Enter'){event.preventDefault(); copiarDesCorta(); document.getElementById('tp-costo-inicial').focus(); document.getElementById('tp-costo-inicial').select();}">
-        <label>Linea</label>
+        <div class="tp-lbl">Linea</div>
         <input type="text" id="tp-linea" ${roAttr} value="${p.linea || ''}">
-        <label>Peso</label>${buildSNSelect('tp-peso', p.peso, disAttr)}
-        <label>VtaUnid</label>${buildSNSelect('tp-vtaunid', p.vtaUnid, disAttr)}
-        <label>Remate</label>${buildSNSelect('tp-remate', p.remate, disAttr)}
+        <div class="tp-lbl">Peso</div>${buildSNSelect('tp-peso', p.peso, disAttr)}
+        <div class="tp-lbl">VtaUnid</div>${buildSNSelect('tp-vtaunid', p.vtaUnid, disAttr)}
+        <div class="tp-lbl">Remate</div>${buildSNSelect('tp-remate', p.remate, disAttr)}
         <select id="tp-color-btn" ${disAttr} style="width:100%; height:19px;">
           ${ORION_COLORS.map(c => `<option value="${c}" ${(p.color||'NEGRO')===c?'selected':''}>${c}</option>`).join('')}
         </select>
 
-        <label>Presentac.</label>
+        <div class="tp-lbl">Presentac.</div>
         <input type="text" id="tp-presentac" ${roAttr} value="${p.presentac || ''}">
-        <label>Color</label>
-        <input type="text" id="tp-color-txt" ${roAttr} value="${p.color || 'NEGRO'}">
-        <label>Activo</label>${buildSNSelect('tp-activo', p.activo, disAttr)}
-        <label>Oferta</label>${buildSNSelect('tp-oferta', p.oferta, disAttr)}
-        <label>NroPrec</label><input type="text" id="tp-lote" ${roAttr} value="${p.lote || '01'}" style="text-align:center;">
-        <input type="text" ${roAttr} value="" placeholder="Operacio" style="width:100%;">
+        <div class="tp-lbl">Color</div>
+        <input type="text" id="tp-color-txt" ${roAttr} value="${p.colorTxt || ''}">
+        <div class="tp-lbl">Activo</div>${buildSNSelect('tp-activo', p.activo, disAttr, true)}
+        <div class="tp-lbl">Oferta</div>${buildSNSelect('tp-oferta', p.oferta, disAttr)}
+        <div class="tp-lbl" title="Nro de Precios">NroPrec</div><input type="text" id="tp-lote" ${roAttr} value="${p.lote || '01'}" style="text-align:center;">
+        <div style="display:grid; grid-template-columns:1fr; gap:1px;">
+          <input type="text" id="tp-operacio" ${roAttr} value="${p.operacio || ''}" placeholder="Operacio" style="width:100%;">
+        </div>
       </div>
 
-      <!-- Cuerpo Central 3 Bloques Exactos de la captura 1579.png -->
-      <div style="display:grid; grid-template-columns: 192px 178px 1fr; gap:5px;">
-        <!-- BLOQUE 1: PesoKgr, IBolsa, IGV, Percep, Minimo, Maximo, DiaUsoPos (desplegable), Foto -->
-        <div class="tp-sec-box" style="display:grid; grid-template-columns: 54px 42px 46px 1fr; gap:2px; align-items:center; font-size:10px;">
-          <span>PesoKgr</span><input type="text" id="tp-pesokgr" ${roAttr} value="${p.pesoKgr || '0.001'}">
-          <span>IBolsa</span><input type="number" step="0.01" id="tp-ibolsa" ${roAttr} value="${p.ibolsa || 0}">
+      <!-- Cuerpo Central 3 Bloques Exactos -->
+      <div style="display:grid; grid-template-columns: 196px 176px 1fr; gap:5px;">
+        <!-- BLOQUE 1 IZQUIERDO: PesoKgr, IBolsa, Flete, IGV, %Ivap, Isc, Minimo, Percep, Detrac, Maximo, DiaUsoPos, Foto -->
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div style="display:grid; grid-template-columns: 56px 40px 50px 1fr; gap:2px; align-items:center; font-size:10px;">
+            <div class="tp-lbl">PesoKgr</div><input type="text" id="tp-pesokgr" ${roAttr} value="${p.pesoKgr || '0.001'}">
+            <div class="tp-lbl">IBolsa</div><input type="number" step="0.01" id="tp-ibolsa" ${roAttr} value="${p.ibolsa || 0}">
 
-          <span>Flete</span><input type="number" step="0.01" id="tp-flete" ${roAttr} value="${p.flete || 0}">
-          <span>IGV</span><input type="number" id="tp-igv" ${roAttr} value="${p.igv ?? 18}">
+            <div class="tp-lbl">Flete</div><input type="number" step="0.01" id="tp-flete" ${roAttr} value="${p.flete || 0}">
+            <div class="tp-lbl">IGV</div><input type="number" id="tp-igv" ${roAttr} value="${p.igv ?? 18}">
 
-          <span>%Ivap</span><input type="number" step="0.01" id="tp-ivap" ${roAttr} value="${p.ivap || 0}">
-          <span>Isc</span><input type="number" step="0.01" id="tp-isc" ${roAttr} value="${p.isc || 0}">
+            <div class="tp-lbl">%Ivap</div><input type="number" step="0.01" id="tp-ivap" ${roAttr} value="${p.ivap || 0}">
+            <div class="tp-lbl">Isc</div><input type="number" step="0.01" id="tp-isc" ${roAttr} value="${p.isc || 0}">
 
-          <span>Minimo</span><input type="number" id="tp-stkmin" ${roAttr} value="${p.stkMin || 0}">
-          <span>Percep</span><input type="number" step="0.5" id="tp-percep" ${roAttr} value="${p.percep || 0}">
+            <div class="tp-lbl">Minimo</div><input type="number" id="tp-stkmin" ${roAttr} value="${p.stkMin || 0}">
+            <div class="tp-lbl">Percep</div><input type="number" step="0.5" id="tp-percep" ${roAttr} value="${p.percep || 0}">
 
-          <span>%DsctRef</span><input type="number" step="0.01" id="tp-dsctref" ${roAttr} value="${p.dsctRef || 0}">
-          <span>Detrac.</span><input type="number" step="0.01" id="tp-detrac" ${roAttr} value="${p.detrac || 0}">
+            <div class="tp-lbl">%DsctRef</div><input type="number" step="0.01" id="tp-dsctref" ${roAttr} value="${p.dsctRef || 0}">
+            <div class="tp-lbl">Detrac.</div><input type="number" step="0.01" id="tp-detrac" ${roAttr} value="${p.detrac || 0}">
 
-          <span>Rentabili</span><input type="number" step="0.01" id="tp-rentabili" ${roAttr} value="${p.rentabili || 0}">
-          <span>Maximo</span><input type="number" id="tp-stkmax" ${roAttr} value="${p.stkMax || 0}">
+            <div class="tp-lbl">Rentabili</div><input type="number" step="0.01" id="tp-rentabili" ${roAttr} value="${p.rentabili || 0}">
+            <div class="tp-lbl">Maximo</div><input type="number" id="tp-stkmax" ${roAttr} value="${p.stkMax || 0}">
 
-          <span>OrdTouc</span><input type="number" id="tp-ordtouc" ${roAttr} value="${p.ordTouc || 0}">
-          <span>Servicio</span><input type="number" id="tp-servicionum" ${roAttr} value="${p.servicioNum || 0}">
+            <div class="tp-lbl">OrdTouc</div><input type="number" id="tp-ordtouc" ${roAttr} value="${p.ordTouc || 0}">
+            <div class="tp-lbl">Servicio</div><input type="number" id="tp-servicionum" ${roAttr} value="${p.servicioNum || 0}">
 
-          <span style="grid-column:span 2;">DiaUsoPos</span>
-          <select id="tp-diausopos" ${disAttr} style="grid-column:span 2; height:18px;">
-            ${ORION_DIAS_POS.map(d => `<option value="${d}" ${(p.diaUsoPos||'')===d?'selected':''}>${d}</option>`).join('')}
-          </select>
+            <div class="tp-lbl">Inventa</div><input type="text" id="tp-invdiario" ${roAttr} value="${p.inventaDiario || ''}">
+            <div class="tp-lbl">Tecla</div><input type="text" id="tp-teclarap" ${roAttr} value="${p.teclaRapida || ''}">
+          </div>
 
-          <div class="vfp-in" style="grid-column:span 4; height:36px; display:flex; align-items:center; justify-content:center; color:#666;">Foto</div>
+          <div style="display:grid; grid-template-columns: 76px 1fr; gap:2px; align-items:center;">
+            <div class="tp-lbl">DiaUsoPos</div>
+            <select id="tp-diausopos" ${disAttr} style="height:19px;">
+              ${ORION_DIAS_POS.map(d => `<option value="${d}" ${(p.diaUsoPos||'')===d?'selected':''}>${d}</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column;">
+            <div class="tp-sec-hdr" style="background:#BCEEEE; font-weight:normal;">Foto</div>
+            <div class="vfp-in" style="height:56px; display:flex; align-items:center; justify-content:center; color:#888; font-size:10px;"></div>
+          </div>
         </div>
 
-        <!-- BLOQUE 2: Mon.Costo | Costo Unitario (EXACTAMENTE 3 filas: CostoUlt, CostoProm, CostoInicial) | Empaque | Costo x Empaque (3 filas) | Fechavence | CostoAnt-1/2 -->
+        <!-- BLOQUE 2 CENTRAL: Mon.Costo | Costo Unitario (3 filas) | Empaque | Costo x Empaque (3 filas) | Fechavence | CostoAnt-1/2 -->
         <div style="display:flex; flex-direction:column; gap:3px;">
-          <div style="display:flex; align-items:center; gap:6px; padding:0 2px;">
-            <b>Mon.Costo</b>
-            <select id="tp-mon-costo" ${disAttr} style="width:45px;">
+          <div style="display:grid; grid-template-columns: 76px 52px; gap:3px; align-items:center;">
+            <div class="tp-lbl">Mon.Costo</div>
+            <select id="tp-mon-costo" ${disAttr}>
               <option value="S" ${(p.monCosto||'S')==='S'?'selected':''}>S</option>
               <option value="D" ${p.monCosto==='D'?'selected':''}>D</option>
             </select>
           </div>
 
-          <div class="tp-sec-box">
-            <div class="tp-sec-title">Costo Unitario</div>
-            <div style="display:grid; grid-template-columns: 72px 1fr; gap:2px; align-items:center;">
-              <span>CostoUlt.</span>
-              <input type="text" id="tp-costo-ult" class="ro" readonly value="${Number(p.costoUlt || 0).toFixed(2)}">
-              <span>CostoProm.</span>
-              <input type="text" id="tp-costo-prom" class="ro" readonly value="${Number(p.costoProm || 0).toFixed(2)}">
-              <span>CostoInicial</span>
+          <div>
+            <div class="tp-sec-hdr">Costo Unitario</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:1px; margin-top:1px;">
+              <div class="tp-lbl">CostoUlt.</div>
+              <input type="text" id="tp-costo-ult" class="ro" readonly value="${Number(p.costoUlt || 0)}">
+              <div class="tp-lbl">CostoProm.</div>
+              <input type="text" id="tp-costo-prom" class="ro" readonly value="${Number(p.costoProm || 0)}">
+              <div class="tp-lbl">CostoInicial</div>
               <input type="number" step="0.001" id="tp-costo-inicial" class="${isVer?'ro':(isNew?'req':'')}" ${isVer?'readonly':''} value="${p.costoInicial || 0}"
                      oninput="syncCostoInicialToEmpaque()"
                      onkeydown="if(event.key==='Enter'){event.preventDefault(); document.getElementById('tp-pr-pvta-0').focus(); document.getElementById('tp-pr-pvta-0').select();}">
             </div>
           </div>
 
-          <div class="tp-sec-box">
-            <div class="tp-sec-title">Empaque</div>
-            <div style="display:grid; grid-template-columns: 72px 1fr; gap:2px; align-items:center;">
-              <span>Unidad</span>
+          <div>
+            <div class="tp-sec-hdr">Empaque</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:1px; margin-top:1px;">
+              <div class="tp-lbl">Unidad</div>
               <select id="tp-emp-und" ${disAttr} onchange="syncEmpaqueUnidad(this.value)">
                 ${empUnitOptions.map(u => `<option value="${u}" ${p.unidad===u?'selected':''}>${u}</option>`).join('')}
               </select>
-              <span>Factor</span>
+              <div class="tp-lbl">Factor</div>
               <input type="number" step="any" id="tp-factor" ${roAttr} value="${factorVal}" oninput="syncCostoInicialToEmpaque()">
             </div>
           </div>
 
-          <div class="tp-sec-box">
-            <div class="tp-sec-title">Costo x Empaque</div>
-            <div style="display:grid; grid-template-columns: 72px 1fr; gap:2px; align-items:center;">
-              <span>CostoUlt.</span>
-              <input type="text" id="tp-emp-ult" class="ro" readonly value="${(Number(p.costoUlt || 0) * factorVal).toFixed(2)}">
-              <span>CostoProm</span>
-              <input type="text" id="tp-emp-prom" class="ro" readonly value="${(Number(p.costoProm || 0) * factorVal).toFixed(2)}">
-              <span>CostoPaq</span>
+          <div>
+            <div class="tp-sec-hdr">Costo x Empaque</div>
+            <div style="display:grid; grid-template-columns: 74px 1fr; gap:1px; margin-top:1px;">
+              <div class="tp-lbl">CostoUlt.</div>
+              <input type="text" id="tp-emp-ult" class="ro" readonly value="${Number((Number(p.costoUlt || 0) * factorVal).toFixed(2))}">
+              <div class="tp-lbl">CostoProm</div>
+              <input type="text" id="tp-emp-prom" class="ro" readonly value="${Number((Number(p.costoProm || 0) * factorVal).toFixed(2))}">
+              <div class="tp-lbl">CostoPaq</div>
               <input type="number" step="0.01" id="tp-costo-paq" ${roAttr} value="${costoPaqIni}" oninput="syncCostoEmpaqueToInicial()">
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: 72px 1fr; gap:2px; align-items:center; padding:0 4px;">
-            <span>Fechavence</span><input type="text" id="tp-fechavence" ${roAttr} value="${p.fechaVence || ''}">
-            <span>CostoAnt-1</span><input type="text" class="ro" readonly value="${Number(p.costoAnt1 || 0).toFixed(2)}">
-            <span>CostoAnt-2</span><input type="text" class="ro" readonly value="${Number(p.costoAnt2 || 0).toFixed(2)}">
+          <div style="display:grid; grid-template-columns: 74px 1fr; gap:1px;">
+            <div class="tp-lbl">Fechavence</div><input type="text" id="tp-fechavence" ${roAttr} value="${p.fechaVence || ''}">
+            <div class="tp-lbl">CostoAnt-1</div><input type="text" class="ro" readonly value="${Number(p.costoAnt1 || 0)}">
+            <div class="tp-lbl">CostoAnt-2</div><input type="text" class="ro" readonly value="${Number(p.costoAnt2 || 0)}">
           </div>
         </div>
 
-        <!-- BLOQUE 3: Grilla de 7 Precios (Unidad | Factor | Pvta | %Margen | %MPrecio | Min | Max | Pvta | %Margen) -->
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <b>Mon.Pvta</b>
+        <!-- BLOQUE 3 DERECHO: Mon.Pvta, Lista, Grilla de 8 Precios, Fechas, Estado VER/NUEVO/MODIFICANDO, Impresoras y Comision -->
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div class="tp-lbl" style="width:62px;">Mon.Pvta</div>
             <select id="tp-mon-pvta" ${disAttr} style="width:42px;">
               <option value="S" ${(p.monPvta||'S')==='S'?'selected':''}>S</option>
               <option value="D" ${p.monPvta==='D'?'selected':''}>D</option>
             </select>
-            <b>Lista</b>
+            <div class="tp-lbl" style="width:42px;">Lista</div>
             <select id="tp-lista" ${disAttr} style="width:48px;">
               <option value="01" ${(p.lista||'01')==='01'?'selected':''}>01</option>
               <option value="02" ${p.lista==='02'?'selected':''}>02</option>
               <option value="03" ${p.lista==='03'?'selected':''}>03</option>
             </select>
+            <input type="text" id="tp-fam-desc" class="ro" readonly style="flex:1;" value="${famObj ? famObj.descripcio : ''}">
           </div>
 
-          <div style="display:grid; grid-template-columns: 1fr 115px; gap:4px;">
-            <div class="vfp-grid-box" style="height:175px;">
+          <div style="display:grid; grid-template-columns: 1fr 122px; gap:4px;">
+            <div class="vfp-grid-box" style="height:190px;">
               <table class="vfp-grid">
                 <thead>
                   <tr>
-                    <th>Unidad</th>
-                    <th>Factor</th>
-                    <th>Pvta</th>
-                    <th>%Margen</th>
-                    <th>%MPrecio</th>
-                    <th>Min</th>
-                    <th>Max</th>
-                    <th>Pvta</th>
-                    <th>%Margen</th>
+                    <th style="background:#2CE0E0; color:#003366;">Unidad</th>
+                    <th style="background:#2CE0E0; color:#003366;">Factor</th>
+                    <th style="background:#2CE0E0; color:#003366;">Pvta</th>
+                    <th style="background:#2CE0E0; color:#003366;">%Margen</th>
+                    <th style="background:#2CE0E0; color:#003366;">%MPrecio</th>
+                    <th style="background:#2CE0E0; color:#003366;">Min</th>
+                    <th style="background:#2CE0E0; color:#003366;">Max</th>
+                    <th style="background:#2CE0E0; color:#003366;">Pvta</th>
+                    <th style="background:#2CE0E0; color:#003366;">%Margen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2193,12 +2259,14 @@ function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = fal
               </table>
             </div>
 
-            <div class="tp-sec-box" style="display:flex; flex-direction:column; gap:2px; font-size:10px;">
-              <span>FechaInicio</span><input type="text" ${roAttr} style="height:17px;">
-              <span>FechaFinal</span><input type="text" ${roAttr} style="height:17px;">
-              <span>FechaInicio</span><input type="text" ${roAttr} style="height:17px;">
-              <span>FechaFinal</span><input type="text" ${roAttr} style="height:17px;">
-              <span>Descuento Fijo</span><input type="number" step="0.01" id="tp-descfijo" ${roAttr} value="${p.descFijo || 0}" style="height:17px;">
+            <div style="display:flex; flex-direction:column; gap:2px; justify-content:flex-end;">
+              <div class="tp-lbl">FechaInicio</div><input type="text" ${roAttr} style="height:18px;">
+              <div class="tp-lbl">FechaFinal</div><input type="text" ${roAttr} style="height:18px;">
+              <div class="tp-lbl">FechaInicio</div><input type="text" ${roAttr} style="height:18px;">
+              <div class="tp-lbl">FechaFinal</div><input type="text" ${roAttr} style="height:18px;">
+              <div style="display:grid; grid-template-columns: 80px 1fr; gap:2px;">
+                <div class="tp-lbl">Descuento Fijo</div><input type="number" step="0.01" id="tp-descfijo" ${roAttr} value="${p.descFijo || 0}" style="height:18px;">
+              </div>
             </div>
           </div>
 
@@ -2209,30 +2277,39 @@ function openTablaProductoModal(cod = null, mode = 'NUEVO', returnToCompra = fal
             <span style="font-weight:normal;">Oferta,precio=0 acepta</span>
           </div>
 
-          <!-- Bloque inferior de Impresoras (desplegable %) y Comision -->
-          <div class="tp-sec-box" style="display:grid; grid-template-columns: 118px 1fr 84px 50px; gap:2px 4px; align-items:center; font-size:10px;">
-            <span>Impresoras</span>
-            <select id="tp-impresoras" ${disAttr} style="height:18px; width:100%;">
+          <!-- Bloque inferior exacto: Impresoras, Puerto orden Despacho1, Grupo orden Despacho, Cola Impresion, Comision, FacReporte -->
+          <div style="display:grid; grid-template-columns: 132px 1fr 86px 56px; gap:2px 4px; align-items:center; font-size:10px;">
+            <div class="tp-lbl">Impresoras</div>
+            <select id="tp-impresoras" ${disAttr} style="grid-column: span 3; height:19px; width:100%;">
               ${ORION_PRINTERS.map(prn => `<option value="${prn}" ${(p.impresoras||'%')===prn?'selected':''}>${prn}</option>`).join('')}
             </select>
-            <span>Cola Impresion</span><input type="text" id="tp-cola-imp" ${roAttr} value="${p.colaImpresion || '5'}" style="height:18px;">
 
-            <span>Puerto orden Despacho1</span><input type="text" id="tp-puerto-desp1" ${roAttr} value="${p.puertoDesp1 || ''}" style="height:18px;">
-            <span>FacReporte</span><input type="number" id="tp-facrep" ${roAttr} value="${p.facReporte || 0}" style="height:18px;">
+            <div class="tp-lbl">Puerto orden Despacho1</div>
+            <input type="text" id="tp-puerto-desp1" ${roAttr} value="${p.puertoDesp1 || ''}" style="grid-column: span 3; height:19px;">
 
-            <span>Grupo orden Despacho</span><input type="text" id="tp-grupo-desp" ${roAttr} value="${p.grupoDesp || ''}" style="height:18px;">
-            <span>Comision</span><input type="number" step="0.01" id="tp-comision" ${roAttr} value="${p.comision || 0}" style="height:18px;">
+            <div class="tp-lbl">Grupo orden Despacho</div>
+            <input type="text" id="tp-grupo-desp" ${roAttr} value="${p.grupoDesp || ''}" style="height:19px;">
+            <div class="tp-lbl">Cola Impresion</div>
+            <input type="text" id="tp-cola-imp" ${roAttr} value="${p.colaImpresion || '5'}" style="height:19px;">
+
+            <div class="tp-lbl">Comision</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:3px;">
+              <input type="number" step="0.01" id="tp-comision" ${roAttr} value="${p.comision || 0}" style="height:19px;">
+              <input type="number" step="0.01" id="tp-comision2" ${roAttr} value="${p.comision2 || 0}" style="height:19px;">
+            </div>
+            <div class="tp-lbl">FacReporte</div>
+            <input type="number" id="tp-facrep" ${roAttr} value="${p.facReporte || 0}" style="height:19px;">
           </div>
         </div>
       </div>
 
-      <!-- Pie final exacto -->
+      <!-- Pie final exacto: Produce ? | UnidadP | FactorP | TipoProd -->
       <div style="margin-top:4px; padding-top:4px; border-top:1px solid #66AAAA; display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; gap:6px; align-items:center;">
-          <span>Produce ?</span>
-          <span>UnidadP</span><input type="text" id="tp-unidad-bot" class="ro" readonly value="${p.unidad}" style="width:48px;">
-          <span>FactorP</span><input type="text" id="tp-factor-bot" class="ro" readonly value="${factorVal}" style="width:32px;">
-          <span>TipoProd</span><input type="text" class="ro" readonly value="STD" style="width:38px;">
+        <div style="display:flex; gap:5px; align-items:center;">
+          <div class="tp-lbl">Produce ?</div>
+          <div class="tp-lbl">UnidadP</div><input type="text" id="tp-unidad-bot" class="ro" readonly value="${p.unidad}" style="width:54px; font-weight:bold;">
+          <div class="tp-lbl">FactorP</div><input type="text" id="tp-factor-bot" class="ro" readonly value="${factorVal}" style="width:32px; font-weight:bold;">
+          <div class="tp-lbl">TipoProd</div><input type="text" class="ro" readonly value="STD" style="width:38px;">
         </div>
         <div style="display:flex; gap:8px;">
           <button class="vfp-btn" style="width:85px; font-weight:bold;" ${isVer ? 'disabled' : ''} onclick="saveTablaProducto(${isNew}, ${returnToCompra})">💾 Grabar</button>
@@ -2273,8 +2350,8 @@ function syncCostoInicialToEmpaque() {
   const empProm = document.getElementById('tp-emp-prom');
   const fBot = document.getElementById('tp-factor-bot');
   if (paq) paq.value = (ini * f).toFixed(2);
-  if (empUlt) empUlt.value = (ult * f).toFixed(2);
-  if (empProm) empProm.value = (prom * f).toFixed(2);
+  if (empUlt) empUlt.value = Number((ult * f).toFixed(2));
+  if (empProm) empProm.value = Number((prom * f).toFixed(2));
   if (fBot) fBot.value = f;
   recalcTablaProdAllMargens();
 }
@@ -2287,7 +2364,7 @@ function syncCostoEmpaqueToInicial() {
 }
 function recalcTablaProdAllMargens() {
   const unitCost = getModalEffectiveCost();
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     const und = (document.getElementById(`tp-pr-und-${i}`)?.value || '').trim();
     const fac = parseFloat(document.getElementById(`tp-pr-fac-${i}`)?.value) || 0;
     const pv = parseFloat(document.getElementById(`tp-pr-pvta-${i}`)?.value) || 0;
@@ -2318,9 +2395,8 @@ function saveTablaProducto(isNew, returnToCompra = false) {
   const costoPromPrev = parseFloat(document.getElementById('tp-costo-prom').value) || 0;
   const lista = document.getElementById('tp-lista').value || '01';
 
-  // Leer las 7 escalas de precio (Fila 1 obligatoria + filas adicionales *01)
   const precios = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     const u = (document.getElementById(`tp-pr-und-${i}`)?.value || '').trim().toUpperCase();
     const f = parseFloat(document.getElementById(`tp-pr-fac-${i}`)?.value) || (i === 0 ? 1 : 0);
     const pv = parseFloat(document.getElementById(`tp-pr-pvta-${i}`)?.value) || 0;
@@ -2339,7 +2415,9 @@ function saveTablaProducto(isNew, returnToCompra = false) {
     return;
   }
 
-  // Leer TODOS los desplegables S/N y campos de la ficha real
+  const igvRaw = document.getElementById('tp-igv').value;
+  const igvVal = igvRaw === '' ? 18 : parseFloat(igvRaw);
+
   const fieldsData = {
     barras, descrip, desCorta, presentac, familia,
     subfamilia: document.getElementById('tp-subfam').value.trim().toUpperCase(),
@@ -2348,6 +2426,7 @@ function saveTablaProducto(isNew, returnToCompra = false) {
     linea: document.getElementById('tp-linea').value.trim().toUpperCase(),
     marca: document.getElementById('tp-marca').value.trim().toUpperCase(),
     proveedor: document.getElementById('tp-proveedor').value,
+    recetaPrn: document.getElementById('tp-recetaprn').value.trim().toUpperCase(),
     unidad, factor,
     costoInicial,
     costoUlt: costoUltPrev > 0 ? costoUltPrev : costoInicial,
@@ -2365,11 +2444,13 @@ function saveTablaProducto(isNew, returnToCompra = false) {
     activo: document.getElementById('tp-activo').value,
     oferta: document.getElementById('tp-oferta').value,
     color: document.getElementById('tp-color-btn').value || 'NEGRO',
+    colorTxt: document.getElementById('tp-color-txt').value.trim().toUpperCase(),
+    operacio: document.getElementById('tp-operacio').value.trim().toUpperCase(),
     lote: document.getElementById('tp-lote').value.trim() || '01',
     pesoKgr: document.getElementById('tp-pesokgr').value.trim() || '0.001',
     ibolsa: parseFloat(document.getElementById('tp-ibolsa').value) || 0,
     flete: parseFloat(document.getElementById('tp-flete').value) || 0,
-    igv: parseFloat(document.getElementById('tp-igv').value) || 18,
+    igv: isNaN(igvVal) ? 18 : igvVal,
     ivap: parseFloat(document.getElementById('tp-ivap').value) || 0,
     isc: parseFloat(document.getElementById('tp-isc').value) || 0,
     stkMin: parseFloat(document.getElementById('tp-stkmin').value) || 0,
@@ -2380,6 +2461,8 @@ function saveTablaProducto(isNew, returnToCompra = false) {
     stkMax: parseFloat(document.getElementById('tp-stkmax').value) || 0,
     ordTouc: parseFloat(document.getElementById('tp-ordtouc').value) || 0,
     servicioNum: parseFloat(document.getElementById('tp-servicionum').value) || 0,
+    inventaDiario: document.getElementById('tp-invdiario').value.trim(),
+    teclaRapida: document.getElementById('tp-teclarap').value.trim(),
     diaUsoPos: document.getElementById('tp-diausopos').value,
     impresoras: document.getElementById('tp-impresoras').value,
     colaImpresion: document.getElementById('tp-cola-imp').value.trim() || '5',
@@ -2387,6 +2470,7 @@ function saveTablaProducto(isNew, returnToCompra = false) {
     grupoDesp: document.getElementById('tp-grupo-desp').value.trim(),
     facReporte: parseFloat(document.getElementById('tp-facrep').value) || 0,
     comision: parseFloat(document.getElementById('tp-comision').value) || 0,
+    comision2: parseFloat(document.getElementById('tp-comision2').value) || 0,
     descFijo: parseFloat(document.getElementById('tp-descfijo').value) || 0,
     fechaVence: document.getElementById('tp-fechavence').value.trim(),
     codigoSunat: document.getElementById('tp-codsunat').value.trim(),
@@ -2824,14 +2908,7 @@ function openConsultaModal(tipo, targetCodeId = null, targetDescId = null, custo
                 ${headers.map(h => `<th>${h}</th>`).join('')}
               </tr>
             </thead>
-            <tbody>
-              ${rows.map((r, i) => `
-                <tr data-idx="${i}" class="${i===0?'active-row':''}" onclick="selectSubConsultaRow(${i}, this)" ondblclick="window._consPick(${i})">
-                  <td style="background:#D4D0C8; color:#000; text-align:center;">${i===0?'▶':''}</td>
-                  ${r.cols.map(c => `<td>${c}</td>`).join('')}
-                </tr>
-              `).join('')}
-            </tbody>
+            <tbody id="sub-cons-tbody"></tbody>
           </table>
         </div>
 
@@ -2917,33 +2994,45 @@ function filterSubConsulta() {
   const q = (document.getElementById('sub-cons-filter')?.value || '').trim().toUpperCase();
   const famFlt = (document.getElementById('sub-cons-fam')?.value || '').trim().toUpperCase();
   const fieldFlt = (document.getElementById('sub-cons-field')?.value || 'DESCRIP');
-  let firstVisibleTr = null;
+  const tbody = document.getElementById('sub-cons-tbody');
+  if (!tbody) return;
 
-  document.querySelectorAll('#sub-cons-table tbody tr').forEach(tr => {
-    const idx = Number(tr.dataset.idx);
-    const row = window._consRows[idx];
-    let matchText = true;
+  const matched = [];
+  const MAX_RENDER = 150;
+  for (let i = 0; i < window._consRows.length; i++) {
+    const row = window._consRows[i];
+    if (famFlt && window._consTipo === 'PRODUCTO') {
+      if ((row.raw.familia || '').toUpperCase() !== famFlt) continue;
+    }
     if (q) {
       if (window._consTipo === 'PRODUCTO') {
-        if (fieldFlt === 'CODIGO') matchText = (row.raw.codigo || '').toUpperCase().includes(q);
-        else if (fieldFlt === 'BARRAS') matchText = (row.raw.barras || '').toUpperCase().includes(q);
-        else matchText = (row.raw.descrip || '').toUpperCase().includes(q) || (row.raw.codigo || '').toUpperCase().includes(q) || (row.raw.barras || '').toUpperCase().includes(q);
+        const c = (row.raw.codigo || '').toUpperCase();
+        const b = (row.raw.barras || '').toUpperCase();
+        const d = (row.raw.descrip || '').toUpperCase();
+        if (fieldFlt === 'CODIGO') { if (!c.includes(q)) continue; }
+        else if (fieldFlt === 'BARRAS') { if (!b.includes(q)) continue; }
+        else { if (!d.includes(q) && !c.includes(q) && !b.includes(q)) continue; }
       } else {
-        matchText = tr.textContent.toUpperCase().includes(q);
+        if (!row.cols.join(' ').toUpperCase().includes(q)) continue;
       }
     }
-    let matchFam = true;
-    if (famFlt && window._consTipo === 'PRODUCTO') {
-      matchFam = (row.raw.familia || '').toUpperCase() === famFlt;
-    }
-    const visible = matchText && matchFam;
-    tr.style.display = visible ? '' : 'none';
-    if (visible && !firstVisibleTr) firstVisibleTr = tr;
-  });
-
-  if (firstVisibleTr) {
-    selectSubConsultaRow(Number(firstVisibleTr.dataset.idx), firstVisibleTr);
+    matched.push({ idx: i, row });
+    if (matched.length >= MAX_RENDER) break;
   }
+
+  if (matched.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:12px; color:#666;">Sin coincidencias.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = matched.map((m, pos) => `
+    <tr data-idx="${m.idx}" class="${pos===0?'active-row':''}" onclick="selectSubConsultaRow(${m.idx}, this)" ondblclick="window._consPick(${m.idx})">
+      <td style="background:#D4D0C8; color:#000; text-align:center;">${pos===0?'▶':''}</td>
+      ${m.row.cols.map(c => `<td>${c}</td>`).join('')}
+    </tr>
+  `).join('');
+
+  selectSubConsultaRow(matched[0].idx, tbody.firstElementChild);
 }
 
 function closeSubModal() {
@@ -3174,7 +3263,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
       compraDraftItems.push({
         codigo: pr.codigo, descrip: pr.descrip, unidad: pr.unidad, factor: pr.factor || 1,
         cant: 1, recib: 0, precio: pr.costo || 0, desc: 0,
-        percPct: pr.percep || (pr.familia === 'CERVEZ' ? 2 : 0), iscPct: 0, igvPct: pr.igv || 18,
+        percPct: pr.percep || (pr.familia === 'CERVEZ' ? 2 : 0), iscPct: 0, igvPct: pr.igv ?? 18,
         familia: pr.familia, subfamilia: pr.subfamilia || '', marca: pr.marca || '',
         hora: nowH, costoAnt: pr.costoUlt || pr.costo || 0
       });
@@ -3258,7 +3347,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
           <input type="text" id="fc-pago" class="${isVer?'ro':'req'}" ${isVer?'readonly':''} value="${existingDoc ? existingDoc.formaPago : '1'}" style="width:74px;" data-f1="openConsultaModal('FORMAPAGO','fc-pago')">
           <button class="f1-btn" ${disAttr} onclick="openConsultaModal('FORMAPAGO','fc-pago')">F1</button>
         </div>
-        <label style="grid-column: span 2; display:flex; align-items:center; gap:3px;"><input type="checkbox" ${disAttr} style="height:13px;"> Sin Igv</label>
+        <label style="grid-column: span 2; display:flex; align-items:center; gap:3px;"><input type="checkbox" id="fc-sin-igv" ${disAttr} style="height:13px;" onchange="renderFacturaCompraGrid()"> Sin Igv</label>
         <label style="grid-column: span 2; display:flex; align-items:center; gap:3px;"><input type="checkbox" ${disAttr} style="height:13px;"> SinStock</label>
         <label>Transport.</label>
         <input type="text" ${roAttr} style="width:100%;">
@@ -3358,7 +3447,7 @@ function openFacturaCompraModal(defaultTipo = 'FC', mode = 'NEW', preAddProdCode
           <span>Neto</span><input type="text" id="fc-neto" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
           <span>Descuento</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
           <span>Subtotal</span><input type="text" id="fc-subtotal" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
-          <span>NoGravado</span><input type="text" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
+          <span>NoGravado</span><input type="text" id="fc-nogravado" class="ro" readonly value="0.00" style="width:100%; height:18px; text-align:right;">
         </div>
 
         <!-- Bloque 3: Flete, Ivap, Isc, Gravado -->
@@ -3472,7 +3561,7 @@ function agregarProductoAFilaCompra(prod) {
     desc: 0,
     percPct: prod.percep || (prod.familia === 'CERVEZ' ? 2 : 0),
     iscPct: 0,
-    igvPct: prod.igv || 18,
+    igvPct: prod.igv ?? 18,
     familia: prod.familia,
     subfamilia: prod.subfamilia || '',
     marca: prod.marca || '',
@@ -3529,7 +3618,7 @@ function renderFacturaCompraGrid(focusTarget = null) {
 
   const itemRowsHtml = compraDraftItems.map((it, idx) => {
     const rowTot = it.cant * it.precio;
-    const rowSub = rowTot / (1 + ((it.igvPct || 18) / 100));
+    const rowSub = rowTot / (1 + ((it.igvPct ?? 18) / 100));
     const rowIgv = rowTot - rowSub;
     const rowPerc = rowTot * ((it.percPct || 0) / 100);
     const isAct = (idx === fcActiveRowIdx);
@@ -3665,21 +3754,28 @@ function updateCompraCostAuditFooter() {
 }
 
 function recalcFacturaCompraTotals() {
+  const sinIgv = Boolean(document.getElementById('fc-sin-igv')?.checked);
   let neto = 0;
-  let subtotal = 0;
+  let gravado = 0;
+  let noGravado = 0;
   let percepcion = 0;
   let totalUnidades = 0;
 
   compraDraftItems.forEach(it => {
-    const rowTot = it.cant * it.precio;
-    const rowSub = rowTot / (1 + ((it.igvPct || 18) / 100));
-    const rowPerc = rowTot * ((it.percPct || 0) / 100);
+    const rowTot = (Number(it.cant) || 0) * (Number(it.precio) || 0);
+    const rate = sinIgv ? 0 : (it.igvPct ?? 18);
+    const rowPerc = rowTot * ((Number(it.percPct) || 0) / 100);
     neto += rowTot;
-    subtotal += rowSub;
+    if (rate > 0) {
+      gravado += rowTot / (1 + (rate / 100));
+    } else {
+      noGravado += rowTot;
+    }
     percepcion += rowPerc;
     totalUnidades += Number(it.cant) || 0;
   });
 
+  const subtotal = gravado + noGravado;
   const impuesto = neto - subtotal;
   const totalGeneral = neto + percepcion;
 
@@ -3687,7 +3783,9 @@ function recalcFacturaCompraTotals() {
   document.getElementById('fc-total-units-box').value = totalUnidades.toFixed(2);
   document.getElementById('fc-neto').value = neto.toFixed(2);
   document.getElementById('fc-subtotal').value = subtotal.toFixed(2);
-  document.getElementById('fc-gravado').value = subtotal.toFixed(2);
+  document.getElementById('fc-gravado').value = gravado.toFixed(2);
+  const ngEl = document.getElementById('fc-nogravado');
+  if (ngEl) ngEl.value = noGravado.toFixed(2);
   document.getElementById('fc-impuesto').value = impuesto.toFixed(2);
   document.getElementById('fc-percepcion').value = percepcion.toFixed(2);
   document.getElementById('fc-total').value = totalGeneral.toFixed(2);
@@ -4078,7 +4176,7 @@ function closeModal() {
   closeSubModal();
 }
 
-nav('login');
+initDBFromStorage().then(() => nav('login'));
 </script>
 </body>
 </html>
